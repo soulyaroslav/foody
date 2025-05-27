@@ -21,9 +21,9 @@ val compactShapes = Shapes(
 val mediumShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(22.dp),
-    large = RoundedCornerShape(26.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    medium = RoundedCornerShape(24.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(34.dp)
 )
 val largeShapes = Shapes(
     extraSmall = RoundedCornerShape(4.0.dp),

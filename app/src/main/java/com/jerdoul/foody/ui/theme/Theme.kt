@@ -25,7 +25,8 @@ private val ColorScheme = lightColorScheme(
     /** Example: Cards, dialogs, bottom sheets **/
     surface = Surface,
     /** Color for text/icons on surface **/
-    onSurface = OnSurface
+    onSurface = OnSurface,
+    onError = OnError
 )
 
 @Composable

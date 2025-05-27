@@ -11,8 +11,8 @@ fun getTypographyForScaleFactor(scaleFactor: Float): Typography {
     return Typography(
         displayLarge = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = (24 * scaleFactor).sp,
+            fontWeight = FontWeight.Bold,
+            fontSize = (54 * scaleFactor).sp,
         ),
         displayMedium = TextStyle(
             fontFamily = FontFamily.Default,
@@ -27,17 +27,17 @@ fun getTypographyForScaleFactor(scaleFactor: Float): Typography {
         headlineLarge = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Normal,
-            fontSize = (24 * scaleFactor).sp
+            fontSize = (34 * scaleFactor).sp
         ),
         headlineMedium = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = (18 * scaleFactor).sp
+            fontWeight = FontWeight.SemiBold,
+            fontSize = (24 * scaleFactor).sp
         ),
         headlineSmall = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = (16 * scaleFactor).sp
+            fontWeight = FontWeight.SemiBold,
+            fontSize = (18 * scaleFactor).sp
         ),
         titleLarge = TextStyle(
             fontFamily = FontFamily.Default,

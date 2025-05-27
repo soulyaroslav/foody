@@ -2,10 +2,16 @@ package com.jerdoul.foody.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Primary = Color(0xFF6f7c6e)
-val OnPrimary = Color(0xFFFFFFFF)
-val Background = Color(0xFF2A2D2C)
+val Primary = Color(0xFFE3AF13)
+val OnPrimary = Color(0xFF000000)
+val Background = Color(0xFFFFFFFF)
 val Surface = Color(0xFF4b4e4d)
 val OnSurface = Color(0xFFFFFFFF)
-val PrimaryContainer = Color(0xFF6F7C6E)
+val PrimaryContainer = Color(0xFFFF9800)
 val OnPrimaryContainer= Color(0xFF1E201E)
+val OnError = Color(0xFFD20345)
+
+val FieldTextColor = Color(0xFF000000)
+val FieldTextLabelColor = Color(0xFF535353)
+val FieldTextHintColor = Color(0x808E8D8D)
+val FieldTextBottomBorderColor = Color(0x8A8E8D8D)

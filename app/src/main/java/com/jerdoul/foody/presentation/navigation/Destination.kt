@@ -5,4 +5,7 @@ import kotlinx.serialization.Serializable
 sealed class Destination {
     @Serializable
     data object Splash : Destination()
+
+    @Serializable
+    data object AuthorizationScreen : Destination()
 }
