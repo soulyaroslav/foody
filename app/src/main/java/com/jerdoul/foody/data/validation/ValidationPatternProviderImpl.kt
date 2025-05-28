@@ -8,6 +8,9 @@ class ValidationPatternProviderImpl @Inject constructor() : ValidationPatternPro
     override fun providePattern(type: ValidationType): String {
         return when (type) {
             is ValidationType.Email -> "[a-zA-Z0-9._%+-]{1,256}@[a-zA-Z0-9.-]{1,64}\\.[a-zA-Z]{2,}"
+            is ValidationType.Password -> ""
+            is ValidationType.ConfirmPassword -> ""
+            is ValidationType.Name -> ""
         }
     }
 }

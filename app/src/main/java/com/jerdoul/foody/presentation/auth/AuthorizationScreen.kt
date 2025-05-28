@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -53,15 +56,16 @@ fun AuthorizationScreen(
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
     ) {
-        val (tabBarRef, logoRef, contentRef) = createRefs()
-        val guideline = createGuidelineFromTop(.5f)
+        val (tabBarRef, contentRef) = createRefs()
+        val guideline = createGuidelineFromTop(.4f)
         AuthTabBar(
             modifier = Modifier
                 .constrainAs(tabBarRef) {
-                    top.linkTo(guideline)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
+                    bottom.linkTo(contentRef.top)
                 },
             tabs = listOf(
                 NavItem.LOGIN,
@@ -74,7 +78,7 @@ fun AuthorizationScreen(
         Box(
             modifier = Modifier
                 .constrainAs(contentRef) {
-                    top.linkTo(tabBarRef.bottom)
+                    top.linkTo(guideline)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
@@ -94,18 +98,14 @@ fun AuthorizationScreen(
                     NavItem.LOGIN -> {
                         LoginContent(
                             state = state.loginState,
-                            onEmailAddressChanged = { email ->
-                                onAction(AuthorizationAction.ValidateEmail(email))
-                            },
-                            onPasswordChanged = {}
+                            onAction = onAction
                         )
                     }
 
                     NavItem.SIGN_UP -> {
                         RegistrationContent(
                             state = state.registrationState,
-                            onEmailAddressChanged = {},
-                            onPasswordChanged = {}
+                            onAction = onAction
                         )
                     }
                 }

@@ -9,7 +9,10 @@ import com.jerdoul.foody.presentation.navigation.DefaultNavigator
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.data.network.NetworkManagerImpl
 import com.jerdoul.foody.data.repository.NetworkRepositoryImpl
+import com.jerdoul.foody.data.validation.ConfirmPasswordValidationProcessorImpl
 import com.jerdoul.foody.data.validation.EmailValidationProcessorImpl
+import com.jerdoul.foody.data.validation.NameValidationProcessorImpl
+import com.jerdoul.foody.data.validation.PasswordValidationProcessorImpl
 import com.jerdoul.foody.data.validation.ValidationPatternProviderImpl
 import com.jerdoul.foody.domain.error.NetworkErrorHandler
 import com.jerdoul.foody.domain.error.NetworkErrorParser
@@ -35,7 +38,10 @@ class AppModule {
     @Singleton
     fun providesValidationProcessors(patternProvider: ValidationPatternProvider): ValidationProcessor {
         return ValidationProcessor.initializeChain(
-            EmailValidationProcessorImpl(patternProvider = patternProvider)
+            EmailValidationProcessorImpl(patternProvider),
+            PasswordValidationProcessorImpl(),
+            NameValidationProcessorImpl(),
+            ConfirmPasswordValidationProcessorImpl()
         )
     }
 

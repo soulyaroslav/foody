@@ -1,5 +1,6 @@
 package com.jerdoul.foody.ui.utils
 
+import android.content.Context
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 
@@ -8,10 +9,31 @@ data class SnackbarAction(
     val action: () -> Unit
 )
 
-data class SnackbarEvent(
-    val message: String,
-    val action: SnackbarAction? = null
-)
+sealed interface SnackbarEvent {
+    data class Message(
+        val message: String,
+        val action: SnackbarAction? = null
+    ): SnackbarEvent
+
+    data class UiTextMessage(
+        val message: UiText,
+        val action: SnackbarAction? = null
+    ): SnackbarEvent
+}
+
+fun SnackbarEvent.asMessage(context: Context): String {
+    return when (this) {
+        is SnackbarEvent.Message -> message
+        is SnackbarEvent.UiTextMessage -> message.asString(context)
+    }
+}
+
+fun SnackbarEvent.asAction(): SnackbarAction? {
+    return when (this) {
+        is SnackbarEvent.Message -> action
+        is SnackbarEvent.UiTextMessage -> action
+    }
+}
 
 object SnackbarController {
 

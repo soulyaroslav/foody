@@ -8,4 +8,7 @@ sealed class Destination {
 
     @Serializable
     data object AuthorizationScreen : Destination()
+
+    @Serializable
+    data object DashboardScreen : Destination()
 }

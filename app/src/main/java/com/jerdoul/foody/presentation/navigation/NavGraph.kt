@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.jerdoul.foody.presentation.auth.AuthorizationScreen
 import com.jerdoul.foody.presentation.auth.AuthorizationViewModel
+import com.jerdoul.foody.presentation.dashboard.DashboardScreen
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.presentation.splash.SplashScreen
 
@@ -39,6 +40,9 @@ fun NavGraph(
                 state = state,
                 onAction = viewModel::onAction
             )
+        }
+        composable<Destination.DashboardScreen> {
+            DashboardScreen(navigator = navigator)
         }
     }
 }

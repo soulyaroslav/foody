@@ -38,6 +38,12 @@ fun ValidationError.asUiText(): UiText {
         ValidationError.Email.EMPTY_EMAIL -> UiText.DynamicString("empty email")
         ValidationError.Email.INVALID_EMAIL -> UiText.DynamicString("invalid email")
         ValidationError.Password.EMPTY_PASSWORD -> UiText.DynamicString("empty password")
-        ValidationError.Password.INVALID_PASSWORD -> UiText.DynamicString("invalid password")
+        ValidationError.Password.NO_DIGITS -> UiText.DynamicString("no digits")
+        ValidationError.Password.NO_LETTERS -> UiText.DynamicString("no letters")
+        ValidationError.Password.NO_UPPER_CASE -> UiText.DynamicString("no uppercase")
+        ValidationError.Password.NO_LOWER_CASE -> UiText.DynamicString("no lowercase")
+        ValidationError.Password.NO_SPECIAL_CHARACTERS -> UiText.DynamicString("no special characters")
+        ValidationError.Password.PASSWORDS_DO_NOT_MATCH -> UiText.DynamicString("passwords do not match")
+        ValidationError.Name.EMPTY_NAME -> UiText.DynamicString("empty name")
     }
 }

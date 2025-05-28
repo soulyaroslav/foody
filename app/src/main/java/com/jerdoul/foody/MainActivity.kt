@@ -1,7 +1,6 @@
 package com.jerdoul.foody
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,18 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.jerdoul.foody.data.network.rememberConnectivityState
-import com.jerdoul.foody.domain.Result
 import com.jerdoul.foody.domain.error.type.NetworkError
 import com.jerdoul.foody.domain.network.NetworkConnectionState
 import com.jerdoul.foody.domain.network.NetworkManager
-import com.jerdoul.foody.domain.usecase.SignInUseCase
-import com.jerdoul.foody.presentation.asErrorUiText
 import com.jerdoul.foody.presentation.asUiText
 import com.jerdoul.foody.presentation.navigation.NavGraph
 import com.jerdoul.foody.presentation.navigation.NavigationAction
@@ -42,6 +37,8 @@ import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.ui.theme.FoodyTheme
 import com.jerdoul.foody.ui.utils.SnackbarController
 import com.jerdoul.foody.ui.utils.SnackbarEvent
+import com.jerdoul.foody.ui.utils.asAction
+import com.jerdoul.foody.ui.utils.asMessage
 import com.jerdoul.foody.ui.utils.rememberWindowSizeDetails
 import com.jerdoul.foody.utils.extensions.updateLightStatusBarAppearance
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,9 +56,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkManager: NetworkManager
-
-    @Inject
-    lateinit var signInUseCase: SignInUseCase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,19 +75,9 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 LaunchedEffect(key1 = networkState) {
-                    val params = SignInUseCase.Params.toParams("", "password")
-                    when(val result = signInUseCase(params)) {
-                        is Result.Error -> {
-                            val error = result.asErrorUiText()
-                            Log.d("TTTT", "result: ${error.asString(context)}")
-                        }
-                        is Result.Success -> {
-                            Log.d("TTTT", "result: ${result.data}")
-                        }
-                    }
                     if (networkState != NetworkConnectionState.Available) {
                         val noConnectionUiText = NetworkError.Http.NoNetworkConnection.asUiText()
-                        val event = SnackbarEvent(noConnectionUiText.asString(context))
+                        val event = SnackbarEvent.Message(noConnectionUiText.asString(context))
                         SnackbarController.showEvent(event)
                     }
                 }
@@ -102,12 +86,12 @@ class MainActivity : ComponentActivity() {
                     scope.launch {
                         snackbarHosState.currentSnackbarData?.dismiss()
                         val result = snackbarHosState.showSnackbar(
-                            message = event.message,
-                            actionLabel = event.action?.label,
+                            message = event.asMessage(context),
+                            actionLabel = event.asAction()?.label,
                             duration = SnackbarDuration.Short
                         )
                         if (result == SnackbarResult.ActionPerformed) {
-                            event.action?.action?.invoke()
+                            event.asAction()?.action?.invoke()
                         }
                     }
                 }
