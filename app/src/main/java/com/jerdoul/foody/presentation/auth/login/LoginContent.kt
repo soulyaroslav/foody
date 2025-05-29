@@ -1,6 +1,12 @@
 package com.jerdoul.foody.presentation.auth.login
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +25,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +43,7 @@ import com.jerdoul.foody.ui.composable.CustomUnderlinedTextField
 import com.jerdoul.foody.ui.utils.UiText
 import com.jerdoul.foody.utils.extensions.fadeInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
+import kotlinx.coroutines.delay
 
 data class LoginState(
     val isLoading: Boolean = false,
@@ -58,8 +70,10 @@ fun LoginContent(
             modifier = Modifier
                 .verticalSlideInAnimation(
                     initialOffsetY = -150f,
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = 100f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = 100f,
+                    ),
                     delay = 400
                 )
                 .fadeInAnimation(delay = 400),
@@ -105,8 +119,10 @@ fun LoginContent(
                 .fillMaxWidth()
                 .verticalSlideInAnimation(
                     initialOffsetY = 150f,
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = 100f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = 100f,
+                    ),
                     delay = 900
                 )
                 .fadeInAnimation(delay = 900)

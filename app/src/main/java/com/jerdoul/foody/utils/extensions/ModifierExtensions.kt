@@ -1,6 +1,7 @@
 package com.jerdoul.foody.utils.extensions
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -47,8 +48,10 @@ fun Modifier.clickableSingle(
 @Composable
 fun Modifier.verticalSlideInAnimation(
     initialOffsetY: Float,
-    dampingRatio: Float = Spring.DampingRatioMediumBouncy,
-    stiffness: Float = 100f,
+    animationSpec: AnimationSpec<Float> = spring(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = 100f,
+    ),
     delay: Long = 0
 ): Modifier {
     val offsetY = remember { Animatable(initialOffsetY) }
@@ -58,16 +61,38 @@ fun Modifier.verticalSlideInAnimation(
         launch {
             offsetY.animateTo(
                 targetValue = 0f,
-                animationSpec = spring(
-                    dampingRatio = dampingRatio,
-                    stiffness = stiffness
-                )
+                animationSpec = animationSpec
             )
         }
     }
 
     return this
         .then(Modifier.offset { IntOffset(0, offsetY.value.toInt()) })
+}
+
+@Composable
+fun Modifier.horizontalSlideInAnimation(
+    initialOffsetX: Float,
+    animationSpec: AnimationSpec<Float> = spring(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = 100f,
+    ),
+    delay: Long = 0
+): Modifier {
+    val offsetX = remember { Animatable(initialOffsetX) }
+
+    LaunchedEffect(Unit) {
+        delay(delay)
+        launch {
+            offsetX.animateTo(
+                targetValue = 0f,
+                animationSpec = animationSpec
+            )
+        }
+    }
+
+    return this
+        .then(Modifier.offset { IntOffset(offsetX.value.toInt(), 0) })
 }
 
 @Composable

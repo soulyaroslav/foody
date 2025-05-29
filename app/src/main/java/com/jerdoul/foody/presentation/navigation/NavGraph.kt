@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import com.jerdoul.foody.presentation.auth.AuthorizationScreen
 import com.jerdoul.foody.presentation.auth.AuthorizationViewModel
 import com.jerdoul.foody.presentation.dashboard.DashboardScreen
+import com.jerdoul.foody.presentation.dashboard.DashboardViewModel
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.presentation.splash.SplashScreen
 
@@ -42,7 +43,14 @@ fun NavGraph(
             )
         }
         composable<Destination.DashboardScreen> {
-            DashboardScreen(navigator = navigator)
+            val viewModel = hiltViewModel<DashboardViewModel>()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+
+            DashboardScreen(
+                navigator = navigator,
+                state = state,
+                onAction = viewModel::onAction
+            )
         }
     }
 }

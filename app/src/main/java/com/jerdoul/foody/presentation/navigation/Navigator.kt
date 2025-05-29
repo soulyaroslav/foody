@@ -32,7 +32,7 @@ class DefaultNavigator @Inject constructor(): Navigator {
     private val _navigationActions = Channel<NavigationAction>()
     override val navigationActions = _navigationActions.receiveAsFlow()
 
-    override val startDestination: Destination = Destination.Splash
+    override val startDestination: Destination = Destination.DashboardScreen
 
     override suspend fun navigate(destination: Destination, navOptions: NavOptionsBuilder.() -> Unit) {
         _navigationActions.trySend(NavigationAction.Navigate(destination, navOptions))

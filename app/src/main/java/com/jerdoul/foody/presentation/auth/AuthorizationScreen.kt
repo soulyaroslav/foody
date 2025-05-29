@@ -142,8 +142,10 @@ fun AuthTabBar(modifier: Modifier, tabs: List<NavItem>, onTabChanged: (NavItem) 
         modifier = modifier
             .verticalSlideInAnimation(
                 initialOffsetY = -200f,
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = 100f
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = 100f
+                )
             )
             .fadeInAnimation()
     ) {

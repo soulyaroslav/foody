@@ -1,6 +1,7 @@
 package com.jerdoul.foody.presentation.auth.login
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -59,8 +60,10 @@ fun RegistrationContent(
             modifier = Modifier
                 .verticalSlideInAnimation(
                     initialOffsetY = 150f,
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = 100f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = 100f,
+                    ),
                     delay = 400
                 )
                 .fadeInAnimation(delay = 400),
@@ -134,8 +137,10 @@ fun RegistrationContent(
                 .fillMaxWidth()
                 .verticalSlideInAnimation(
                     initialOffsetY = 150f,
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = 100f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = 100f,
+                    ),
                     delay = 900
                 )
                 .fadeInAnimation(delay = 900)
