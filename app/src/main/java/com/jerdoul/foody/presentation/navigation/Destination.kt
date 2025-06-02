@@ -11,4 +11,7 @@ sealed class Destination {
 
     @Serializable
     data object DashboardScreen : Destination()
+
+    @Serializable
+    data class SearchScreen(val searchQuery: String) : Destination()
 }

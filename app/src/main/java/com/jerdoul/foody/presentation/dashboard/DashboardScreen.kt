@@ -1,6 +1,5 @@
 package com.jerdoul.foody.presentation.dashboard
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -65,7 +64,6 @@ import com.jerdoul.foody.ui.theme.OnError
 import com.jerdoul.foody.utils.extensions.clickableSingle
 import com.jerdoul.foody.utils.extensions.horizontalSlideInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
-import kotlinx.coroutines.delay
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -80,7 +78,7 @@ fun DashboardScreen(
             .fillMaxSize()
     ) {
         val (toolbarRef, titleRef, searchRef, typesRef, foodsRef) = createRefs()
-        Toolbar(
+        DashboardToolbar(
             modifier = Modifier
                 .constrainAs(ref = toolbarRef) {
                     top.linkTo(parent.top)
@@ -368,7 +366,8 @@ fun SearchBar(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedTextColor = FieldTextColor
+                    focusedTextColor = FieldTextColor,
+                    unfocusedTextColor = FieldTextColor
                 )
             )
             Box(
@@ -389,7 +388,7 @@ fun SearchBar(
 }
 
 @Composable
-fun Toolbar(modifier: Modifier = Modifier) {
+fun DashboardToolbar(modifier: Modifier = Modifier) {
     var animate by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {

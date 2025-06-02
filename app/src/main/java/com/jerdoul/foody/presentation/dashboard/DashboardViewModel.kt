@@ -8,11 +8,15 @@ import com.jerdoul.foody.domain.pojo.DishType
 import com.jerdoul.foody.domain.usecase.RetrieveDishTypesUseCase
 import com.jerdoul.foody.domain.usecase.RetrieveDishesUseCase
 import com.jerdoul.foody.presentation.asErrorUiText
+import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -20,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val retrieveDishTypesUseCase: RetrieveDishTypesUseCase,
@@ -29,15 +34,28 @@ class DashboardViewModel @Inject constructor(
 
     private var allDishes: List<Dish> = emptyList()
 
+    private val _searchQuery = MutableStateFlow("")
+
     private val _state = MutableStateFlow(DashboardState())
-    val state = _state
-        .onStart {
-            onAction(DashboardAction.RetrieveData)
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = DashboardState()
-        )
+    val state = _state.onStart {
+        onAction(DashboardAction.RetrieveData)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = DashboardState()
+    )
+
+    init {
+        viewModelScope.launch {
+            _searchQuery
+                .onEach { query ->_state.update { it.copy(searchQuery = query) } }
+                .debounce(500)
+                .filter { it.isNotBlank() }
+                .collect {
+                    navigator.navigate(Destination.SearchScreen(searchQuery = it))
+                }
+        }
+    }
 
     fun onAction(action: DashboardAction) {
         when (action) {
@@ -57,7 +75,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun search(query: String) {
-
+        _searchQuery.update { query }
     }
 
     private fun retrieveData() {
