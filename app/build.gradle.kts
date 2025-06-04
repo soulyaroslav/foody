@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.serialization)
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.compose.animation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

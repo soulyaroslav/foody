@@ -10,6 +10,7 @@ import com.jerdoul.foody.domain.usecase.RetrieveDishesUseCase
 import com.jerdoul.foody.presentation.asErrorUiText
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
+import com.jerdoul.foody.presentation.search.SearchState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -48,10 +49,11 @@ class DashboardViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _searchQuery
-                .onEach { query ->_state.update { it.copy(searchQuery = query) } }
+                .onEach { query -> _state.update { it.copy(searchQuery = query) } }
                 .debounce(500)
                 .filter { it.isNotBlank() }
                 .collect {
+                    onAction(DashboardAction.Reset)
                     navigator.navigate(Destination.SearchScreen(searchQuery = it))
                 }
         }
@@ -62,6 +64,7 @@ class DashboardViewModel @Inject constructor(
             DashboardAction.RetrieveData -> retrieveData()
             is DashboardAction.Search -> search(action.query)
             is DashboardAction.FilterDishes -> filterDishes(action.dishType)
+            DashboardAction.Reset -> reset()
         }
     }
 
@@ -109,5 +112,10 @@ class DashboardViewModel @Inject constructor(
 
             }
         }
+    }
+
+    private fun reset() {
+        _searchQuery.update { "" }
+        _state.update { DashboardState() }
     }
 }

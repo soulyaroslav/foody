@@ -1,5 +1,8 @@
 package com.jerdoul.foody.domain.pojo
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class DishType(val type: String) {
     FAST_FOOD("Fast Food"),
     FRESH_FRUITS("Fresh Fruits"),

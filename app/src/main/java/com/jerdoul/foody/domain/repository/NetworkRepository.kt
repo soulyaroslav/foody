@@ -16,4 +16,5 @@ interface NetworkRepository {
 
     suspend fun retrieveDishTypes(): Result<List<DishType>, NetworkError>
     suspend fun retrieveDishes(): Result<List<Dish>, NetworkError>
+    suspend fun retrieveDishById(id: Int): Result<Dish, NetworkError>
 }

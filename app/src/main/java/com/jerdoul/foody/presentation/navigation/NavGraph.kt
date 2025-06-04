@@ -1,5 +1,7 @@
 package com.jerdoul.foody.presentation.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -12,6 +14,8 @@ import com.jerdoul.foody.presentation.auth.AuthorizationScreen
 import com.jerdoul.foody.presentation.auth.AuthorizationViewModel
 import com.jerdoul.foody.presentation.dashboard.DashboardScreen
 import com.jerdoul.foody.presentation.dashboard.DashboardViewModel
+import com.jerdoul.foody.presentation.details.DetailsScreen
+import com.jerdoul.foody.presentation.details.DetailsViewModel
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.presentation.search.SearchScreen
 import com.jerdoul.foody.presentation.search.SearchViewModel
@@ -21,47 +25,62 @@ enum class KeyboardState {
     SHOW, HIDE
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun NavGraph(
     modifier: Modifier,
     navController: NavHostController,
     navigator: Navigator
 ) {
-    NavHost(
-        modifier = modifier,
-        navController = navController,
-        startDestination = navigator.startDestination
-    ) {
-        composable<Destination.Splash> {
-            SplashScreen(navigator = navigator)
-        }
-        composable<Destination.AuthorizationScreen> {
-            val viewModel = hiltViewModel<AuthorizationViewModel>()
-            val state by viewModel.state.collectAsStateWithLifecycle()
-            AuthorizationScreen(
-                navigator = navigator,
-                state = state,
-                onAction = viewModel::onAction
-            )
-        }
-        composable<Destination.DashboardScreen> {
-            val viewModel = hiltViewModel<DashboardViewModel>()
-            val state by viewModel.state.collectAsStateWithLifecycle()
+    SharedTransitionLayout {
+        NavHost(
+            modifier = modifier,
+            navController = navController,
+            startDestination = navigator.startDestination
+        ) {
+            composable<Destination.Splash> {
+                SplashScreen(navigator = navigator)
+            }
+            composable<Destination.AuthorizationScreen> {
+                val viewModel = hiltViewModel<AuthorizationViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                AuthorizationScreen(
+                    navigator = navigator,
+                    state = state,
+                    onAction = viewModel::onAction
+                )
+            }
+            composable<Destination.DashboardScreen> {
+                val viewModel = hiltViewModel<DashboardViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
 
-            DashboardScreen(
-                navigator = navigator,
-                state = state,
-                onAction = viewModel::onAction
-            )
-        }
-        composable<Destination.SearchScreen> {
-            val viewModel = hiltViewModel<SearchViewModel>()
-            val state by viewModel.state.collectAsStateWithLifecycle()
-            SearchScreen(
-                navigator = navigator,
-                state = state,
-                onAction = viewModel::onAction
-            )
+                DashboardScreen(
+                    navigator = navigator,
+                    state = state,
+                    animatedVisibilityScope = this,
+                    onAction = viewModel::onAction
+                )
+            }
+            composable<Destination.SearchScreen> {
+                val viewModel = hiltViewModel<SearchViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                SearchScreen(
+                    navigator = navigator,
+                    state = state,
+                    animatedVisibilityScope = this,
+                    onAction = viewModel::onAction
+                )
+            }
+            composable<Destination.DetailsScreen> {
+                val viewModel = hiltViewModel<DetailsViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                DetailsScreen(
+                    navigator = navigator,
+                    state = state,
+                    animatedVisibilityScope = this,
+                    onAction = viewModel::onAction
+                )
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.jerdoul.foody.presentation.dashboard
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -42,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,6 +62,7 @@ import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
 import com.jerdoul.foody.domain.pojo.Dish
 import com.jerdoul.foody.domain.pojo.DishType
+import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.ui.theme.FieldTextColor
 import com.jerdoul.foody.ui.theme.FieldTextHintColor
@@ -64,15 +70,21 @@ import com.jerdoul.foody.ui.theme.OnError
 import com.jerdoul.foody.utils.extensions.clickableSingle
 import com.jerdoul.foody.utils.extensions.horizontalSlideInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun DashboardScreen(
+fun SharedTransitionScope.DashboardScreen(
     navigator: Navigator,
     state: DashboardState,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onAction: (DashboardAction) -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    var enableVerticalSlideAnimation by rememberSaveable { mutableStateOf(true) }
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -162,36 +174,47 @@ fun DashboardScreen(
                 }
                 .horizontalSlideInAnimation(
                     initialOffsetX = 1000f,
+                    enabled = enableVerticalSlideAnimation,
                     animationSpec = tween(
                         durationMillis = 700,
                         delayMillis = 1000
-                    )
+                    ),
+                    onFinished = {
+                        enableVerticalSlideAnimation = false
+                    }
                 ),
             state = listState,
             flingBehavior = flingBehavior,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            itemsIndexed(state.dishes) { index, dish ->
+            items(state.dishes) { dish ->
                 DishItem(
                     dish = dish,
                     listState = listState,
-                    index = index
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    onDishSelected = {
+                        coroutineScope.launch {
+                            navigator.navigate(Destination.DetailsScreen(it.id))
+                        }
+                    }
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun DishItem(
+fun SharedTransitionScope.DishItem(
     dish: Dish,
     listState: LazyListState,
-    index: Int
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onDishSelected: (Dish) -> Unit
 ) {
     val currentItemOffset = remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
-            val visibleItem = layoutInfo.visibleItemsInfo.find { it.index == index }
+            val visibleItem = layoutInfo.visibleItemsInfo.find { it.index == dish.id - 1 }
             if (visibleItem != null) {
                 val center = layoutInfo.viewportStartOffset + layoutInfo.viewportSize.width / 2
                 val itemCenter = visibleItem.offset + visibleItem.size / 2
@@ -218,6 +241,9 @@ fun DishItem(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(14.dp)
             )
+            .clickableSingle {
+                onDishSelected(dish)
+            }
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -225,7 +251,14 @@ fun DishItem(
         Image(
             modifier = Modifier
                 .size(200.dp)
-                .clip(CircleShape),
+                .clip(CircleShape)
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "image/logo_dish_${dish.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 1000)
+                    }
+                ),
             painter = painterResource(id = R.drawable.logo_dish),
             contentDescription = "Dish Item"
         )

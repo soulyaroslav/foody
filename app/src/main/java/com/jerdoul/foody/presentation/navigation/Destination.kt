@@ -1,5 +1,6 @@
 package com.jerdoul.foody.presentation.navigation
 
+import com.jerdoul.foody.domain.pojo.Dish
 import kotlinx.serialization.Serializable
 
 sealed class Destination {
@@ -14,4 +15,7 @@ sealed class Destination {
 
     @Serializable
     data class SearchScreen(val searchQuery: String) : Destination()
+
+    @Serializable
+    data class DetailsScreen(val dishId: Int) : Destination()
 }

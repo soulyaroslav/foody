@@ -5,19 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerdoul.foody.domain.Result
 import com.jerdoul.foody.domain.pojo.Dish
-import com.jerdoul.foody.domain.pojo.DishType
-import com.jerdoul.foody.domain.usecase.RetrieveDishTypesUseCase
 import com.jerdoul.foody.domain.usecase.RetrieveDishesUseCase
 import com.jerdoul.foody.presentation.asErrorUiText
-import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -30,7 +25,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val retrieveDishesUseCase: RetrieveDishesUseCase,
     private val navigator: Navigator,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private var allDishes: List<Dish> = emptyList()
@@ -47,6 +42,17 @@ class SearchViewModel @Inject constructor(
     )
 
     init {
+        initSearching()
+    }
+
+    fun onAction(action: SearchAction) {
+        when (action) {
+            SearchAction.RetrieveData -> retrieveData()
+            is SearchAction.Search -> search(action.query)
+        }
+    }
+
+    private fun initSearching() {
         viewModelScope.launch {
             _searchQuery
                 .onEach { query -> _state.update { it.copy(searchQuery = query) } }
@@ -74,13 +80,6 @@ class SearchViewModel @Inject constructor(
             if (query.isNotEmpty()) {
                 _searchQuery.update { query }
             }
-        }
-    }
-
-    fun onAction(action: SearchAction) {
-        when (action) {
-            SearchAction.RetrieveData -> retrieveData()
-            is SearchAction.Search -> search(action.query)
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.IntOffset
@@ -45,54 +46,61 @@ fun Modifier.clickableSingle(
     )
 }
 
-@Composable
 fun Modifier.verticalSlideInAnimation(
     initialOffsetY: Float,
+    enabled: Boolean = true,
     animationSpec: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = 100f,
     ),
-    delay: Long = 0
-): Modifier {
+    delay: Long = 0,
+    onFinished: () -> Unit = {}
+): Modifier = composed {
     val offsetY = remember { Animatable(initialOffsetY) }
 
     LaunchedEffect(Unit) {
-        delay(delay)
-        launch {
+        if (enabled) {
+            delay(delay)
             offsetY.animateTo(
                 targetValue = 0f,
                 animationSpec = animationSpec
             )
         }
+        onFinished()
     }
 
-    return this
-        .then(Modifier.offset { IntOffset(0, offsetY.value.toInt()) })
+    thenIf(enabled) {
+        Modifier.offset { IntOffset(0, offsetY.value.toInt()) }
+    }
 }
 
 @Composable
 fun Modifier.horizontalSlideInAnimation(
     initialOffsetX: Float,
+    enabled: Boolean = true,
     animationSpec: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = 100f,
     ),
-    delay: Long = 0
-): Modifier {
+    delay: Long = 0,
+    onFinished: () -> Unit = {}
+): Modifier = composed {
     val offsetX = remember { Animatable(initialOffsetX) }
 
     LaunchedEffect(Unit) {
-        delay(delay)
-        launch {
+        if (enabled) {
+            delay(delay)
             offsetX.animateTo(
                 targetValue = 0f,
                 animationSpec = animationSpec
             )
         }
+        onFinished()
     }
 
-    return this
-        .then(Modifier.offset { IntOffset(offsetX.value.toInt(), 0) })
+    thenIf(enabled) {
+        Modifier.offset { IntOffset(offsetX.value.toInt(), 0) }
+    }
 }
 
 @Composable
@@ -114,4 +122,12 @@ fun Modifier.fadeInAnimation(
 
     return this
         .alpha(alpha.value)
+}
+
+fun Modifier.thenIf(condition: Boolean, modifier: Modifier.() -> Modifier): Modifier {
+    return if (condition) {
+        this.modifier()
+    } else {
+        this
+    }
 }

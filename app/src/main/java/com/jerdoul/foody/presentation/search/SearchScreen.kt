@@ -1,6 +1,9 @@
 package com.jerdoul.foody.presentation.search
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,18 +54,22 @@ import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
 import com.jerdoul.foody.domain.pojo.Dish
 import com.jerdoul.foody.presentation.dashboard.SearchBar
+import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.ui.theme.FieldTextColor
 import com.jerdoul.foody.ui.theme.FieldTextHintColor
 import com.jerdoul.foody.ui.theme.OnError
+import com.jerdoul.foody.utils.extensions.clickableSingle
 import com.jerdoul.foody.utils.extensions.horizontalSlideInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SearchScreen(
+fun SharedTransitionScope.SearchScreen(
     navigator: Navigator,
     state: SearchState,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onAction: (SearchAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -69,6 +77,8 @@ fun SearchScreen(
     val screenHeightPx = with(LocalDensity.current) {
         configuration.screenHeightDp.dp.toPx()
     }
+
+    var enableVerticalSlideAnimation by rememberSaveable { mutableStateOf(true) }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (searchRef, toolbarRef, gridRef) = createRefs()
@@ -119,11 +129,15 @@ fun SearchScreen(
                 }
                 .verticalSlideInAnimation(
                     initialOffsetY = screenHeightPx,
+                    enabled = enableVerticalSlideAnimation,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
                         stiffness = Spring.StiffnessLow
                     ),
-                    delay = 200
+                    delay = 200,
+                    onFinished = {
+                        enableVerticalSlideAnimation = false
+                    }
                 ),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalItemSpacing = 14.dp,
@@ -145,7 +159,15 @@ fun SearchScreen(
                 )
             }
             items(state.dishes) { dish ->
-                SearchDishItem(dish = dish)
+                SearchDishItem(
+                    dish = dish,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    onDishSelected = {
+                        coroutineScope.launch {
+                            navigator.navigate(Destination.DetailsScreen(it.id))
+                        }
+                    }
+                )
             }
         }
     }
@@ -223,14 +245,20 @@ fun SearchToolbar(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SearchDishItem(dish: Dish) {
+fun SharedTransitionScope.SearchDishItem(
+    dish: Dish,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onDishSelected: (Dish) -> Unit
+) {
     Column(
         modifier = Modifier
             .background(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(14.dp)
             )
+            .clickableSingle { onDishSelected(dish) }
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -238,7 +266,14 @@ fun SearchDishItem(dish: Dish) {
         Image(
             modifier = Modifier
                 .size(200.dp)
-                .clip(CircleShape),
+                .clip(CircleShape)
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "image/logo_dish_${dish.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 1000)
+                    }
+                ),
             painter = painterResource(id = R.drawable.logo_dish),
             contentDescription = "Dish Item"
         )
