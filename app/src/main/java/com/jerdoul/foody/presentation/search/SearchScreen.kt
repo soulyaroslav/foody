@@ -53,6 +53,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
 import com.jerdoul.foody.domain.pojo.Dish
+import com.jerdoul.foody.domain.pojo.identifier
 import com.jerdoul.foody.presentation.dashboard.SearchBar
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
@@ -268,7 +269,7 @@ fun SharedTransitionScope.SearchDishItem(
                 .size(200.dp)
                 .clip(CircleShape)
                 .sharedElement(
-                    sharedContentState = rememberSharedContentState(key = "image/logo_dish_${dish.id}"),
+                    sharedContentState = rememberSharedContentState(key = "image/${dish.identifier()}"),
                     animatedVisibilityScope = animatedVisibilityScope,
                     boundsTransform = { _, _ ->
                         tween(durationMillis = 1000)
@@ -283,7 +284,7 @@ fun SharedTransitionScope.SearchDishItem(
             color = FieldTextColor
         )
         Text(
-            text = dish.description,
+            text = dish.shortDescription,
             style = MaterialTheme.typography.bodySmall,
             color = FieldTextHintColor
         )

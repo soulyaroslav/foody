@@ -3,6 +3,7 @@ package com.jerdoul.foody.di
 import android.app.Application
 import android.content.Context
 import com.google.gson.Gson
+import com.jerdoul.foody.data.cart.CartCacheImpl
 import com.jerdoul.foody.data.error.NetworkErrorHandlerImpl
 import com.jerdoul.foody.data.error.NetworkErrorParserImpl
 import com.jerdoul.foody.presentation.navigation.DefaultNavigator
@@ -14,6 +15,7 @@ import com.jerdoul.foody.data.validation.EmailValidationProcessorImpl
 import com.jerdoul.foody.data.validation.NameValidationProcessorImpl
 import com.jerdoul.foody.data.validation.PasswordValidationProcessorImpl
 import com.jerdoul.foody.data.validation.ValidationPatternProviderImpl
+import com.jerdoul.foody.domain.cart.CartCache
 import com.jerdoul.foody.domain.error.NetworkErrorHandler
 import com.jerdoul.foody.domain.error.NetworkErrorParser
 import com.jerdoul.foody.domain.network.NetworkManager
@@ -78,4 +80,8 @@ interface BindingsModule {
     @Binds
     @Singleton
     fun bindNetworkErrorParser(parser: NetworkErrorParserImpl): NetworkErrorParser
+
+    @Binds
+    @Singleton
+    fun bindCartCache(cache: CartCacheImpl): CartCache
 }

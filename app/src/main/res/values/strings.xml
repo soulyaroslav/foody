@@ -3,4 +3,6 @@
     <string name="no_network_connection">No Internet Connection</string>
     <string name="calories">%1$s Calories</string>
     <string name="search_food">Search Food</string>
+    <string name="details">Details</string>
+    <string name="ingredients">Ingredients</string>
 </resources>

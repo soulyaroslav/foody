@@ -1,6 +1,5 @@
 package com.jerdoul.foody.presentation.navigation
 
-import com.jerdoul.foody.domain.pojo.Dish
 import kotlinx.serialization.Serializable
 
 sealed class Destination {
