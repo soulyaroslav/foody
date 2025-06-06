@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerdoul.foody.domain.Result
+import com.jerdoul.foody.domain.cart.CartCache
 import com.jerdoul.foody.domain.pojo.Dish
 import com.jerdoul.foody.domain.usecase.RetrieveDishesUseCase
 import com.jerdoul.foody.presentation.asErrorUiText
@@ -24,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val retrieveDishesUseCase: RetrieveDishesUseCase,
+    private val cartCache: CartCache,
     private val navigator: Navigator,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -89,20 +91,28 @@ class SearchViewModel @Inject constructor(
 
     private fun retrieveData() {
         viewModelScope.launch {
-            when (val dishesResult = retrieveDishesUseCase()) {
-                is Result.Success -> {
-                    allDishes = dishesResult.data
-                    _state.update {
-                        it.copy(isLoading = false)
-                    }
+            launch {
+                val count = cartCache.obtain().size
+                _state.update {
+                    it.copy(cartCount = count)
                 }
+            }
+            launch {
+                when (val dishesResult = retrieveDishesUseCase()) {
+                    is Result.Success -> {
+                        allDishes = dishesResult.data
+                        _state.update {
+                            it.copy(isLoading = false)
+                        }
+                    }
 
-                is Result.Error -> {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = dishesResult.asErrorUiText()
-                        )
+                    is Result.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = dishesResult.asErrorUiText()
+                            )
+                        }
                     }
                 }
             }

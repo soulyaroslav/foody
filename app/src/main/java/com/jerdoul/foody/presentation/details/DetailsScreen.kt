@@ -1,8 +1,6 @@
 package com.jerdoul.foody.presentation.details
 
-import android.icu.text.IDNA.Info
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -12,7 +10,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -34,7 +31,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
@@ -48,19 +44,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.VectorPainter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -71,8 +62,11 @@ import com.jerdoul.foody.R
 import com.jerdoul.foody.domain.pojo.Dish
 import com.jerdoul.foody.domain.pojo.IngredientType
 import com.jerdoul.foody.domain.pojo.identifier
+import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
+import com.jerdoul.foody.ui.composable.Counter
 import com.jerdoul.foody.ui.composable.IconWithCounter
+import com.jerdoul.foody.ui.composable.NavToolbar
 import com.jerdoul.foody.ui.theme.FieldTextColor
 import com.jerdoul.foody.ui.theme.FieldTextHintColor
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
@@ -87,15 +81,11 @@ fun SharedTransitionScope.DetailsScreen(
     onAction: (DetailsAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-
-    val configuration = LocalConfiguration.current
-    val screenHeightPx = with(LocalDensity.current) {
-        configuration.screenHeightDp.dp.toPx()
-    }
+    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (toolbarRef, dishImageRef, detailsRef, addToCartRef) = createRefs()
-        DetailsToolbar(
+        NavToolbar(
             modifier = Modifier
                 .constrainAs(toolbarRef) {
                     top.linkTo(parent.top)
@@ -105,9 +95,16 @@ fun SharedTransitionScope.DetailsScreen(
                 }
                 .statusBarsPadding(),
             onBack = { coroutineScope.launch { navigator.navigateUp() } },
-            cartCount = state.cartCount,
-            onShopCartSelected = {
-
+            customContent = {
+                IconWithCounter(
+                    count = state.cartCount,
+                    painter = rememberVectorPainter(Icons.Filled.ShoppingCart),
+                    onShopCartSelected = {
+                        coroutineScope.launch {
+                            navigator.navigate(Destination.CartScreen)
+                        }
+                    }
+                )
             }
         )
         Image(
@@ -235,7 +232,7 @@ fun SharedTransitionScope.DetailsScreen(
                 }
             }
         }
-        Row(
+        Counter(
             modifier = Modifier
                 .constrainAs(addToCartRef) {
                     start.linkTo(parent.start)
@@ -250,118 +247,14 @@ fun SharedTransitionScope.DetailsScreen(
                         stiffness = Spring.StiffnessLow
                     ),
                     delay = 800
-                )
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.extraLarge
                 ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            IconButton(
-                onClick = {
-                    onAction(DetailsAction.Decrease)
-                }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_remove),
-                    contentDescription = null
-                )
-            }
-            AnimatedContent(
-                targetState = state.selectedCount,
-                transitionSpec = {
-                    // Compare the incoming number with the previous number.
-                    if (targetState > initialState) {
-                        // If the target number is larger, it slides up and fades in
-                        // while the initial (smaller) number slides up and fades out.
-                        slideInVertically { height -> height } + fadeIn() togetherWith
-                                slideOutVertically { height -> -height } + fadeOut()
-                    } else {
-                        // If the target number is smaller, it slides down and fades in
-                        // while the initial number slides down and fades out.
-                        slideInVertically { height -> -height } + fadeIn() togetherWith
-                                slideOutVertically { height -> height } + fadeOut()
-                    }.using(
-                        // Disable clipping since the faded slide-in/out should
-                        // be displayed out of bounds.
-                        SizeTransform(clip = false)
-                    )
-                }, label = "animated content"
-            ) { targetCount ->
-                Text(
-                    text = targetCount.toString(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = FieldTextColor
-                )
-            }
-            IconButton(
-                onClick = {
-                    onAction(DetailsAction.Increase)
-                }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_add),
-                    contentDescription = null
-                )
-            }
-        }
+            onDecrement = { onAction(DetailsAction.Decrease) },
+            onIncrement = { onAction(DetailsAction.Increase) },
+            selectedCount = state.selectedCount
+        )
     }
 }
 
-@Composable
-fun DetailsToolbar(
-    modifier: Modifier,
-    cartCount: Int,
-    onBack: () -> Unit,
-    onShopCartSelected: () -> Unit
-) {
-    var animate by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        animate = true
-    }
-
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AnimatedVisibility(
-            visible = animate,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            IconButton(
-                onClick = { onBack() }
-            ) {
-                Icon(
-                    painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                    contentDescription = null
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = animate,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            IconWithCounter(
-                count = cartCount,
-                painter = rememberVectorPainter(Icons.Filled.ShoppingCart),
-                onShopCartSelected = onShopCartSelected
-            )
-        }
-    }
-}
 
 @Composable
 fun InfoContent(modifier: Modifier, dish: Dish?) {

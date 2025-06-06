@@ -1,6 +1,5 @@
 package com.jerdoul.foody.presentation.search
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -8,7 +7,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,17 +24,12 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,8 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,6 +49,8 @@ import com.jerdoul.foody.domain.pojo.identifier
 import com.jerdoul.foody.presentation.dashboard.SearchBar
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
+import com.jerdoul.foody.ui.composable.IconWithCounter
+import com.jerdoul.foody.ui.composable.NavToolbar
 import com.jerdoul.foody.ui.theme.FieldTextColor
 import com.jerdoul.foody.ui.theme.FieldTextHintColor
 import com.jerdoul.foody.ui.theme.OnError
@@ -74,16 +68,13 @@ fun SharedTransitionScope.SearchScreen(
     onAction: (SearchAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val configuration = LocalConfiguration.current
-    val screenHeightPx = with(LocalDensity.current) {
-        configuration.screenHeightDp.dp.toPx()
-    }
+    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
 
     var enableVerticalSlideAnimation by rememberSaveable { mutableStateOf(true) }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (searchRef, toolbarRef, gridRef) = createRefs()
-        SearchToolbar(
+        NavToolbar(
             modifier = Modifier
                 .constrainAs(toolbarRef) {
                     top.linkTo(parent.top)
@@ -93,8 +84,18 @@ fun SharedTransitionScope.SearchScreen(
                 }
                 .statusBarsPadding(),
             title = stringResource(R.string.search_food),
-            onBack = { coroutineScope.launch { navigator.navigateUp() } },
-            onShopCartSelected = {}
+            onBack = { navigator.navigateUp()  },
+            customContent = {
+                IconWithCounter(
+                    count = state.cartCount,
+                    painter = rememberVectorPainter(Icons.Filled.ShoppingCart),
+                    onShopCartSelected = {
+                        coroutineScope.launch {
+                            navigator.navigate(Destination.CartScreen)
+                        }
+                    }
+                )
+            }
         )
         SearchBar(
             modifier = Modifier
@@ -174,78 +175,6 @@ fun SharedTransitionScope.SearchScreen(
     }
 }
 
-@Composable
-fun SearchToolbar(
-    modifier: Modifier,
-    title: String,
-    onBack: () -> Unit,
-    onShopCartSelected: () -> Unit
-) {
-    var animate by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        animate = true
-    }
-
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AnimatedVisibility(
-            visible = animate,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            IconButton(
-                onClick = { onBack() }
-            ) {
-                Icon(
-                    painter = rememberVectorPainter(Icons.AutoMirrored.Filled.ArrowBack),
-                    contentDescription = "Arrow Back"
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = animate,
-            enter = scaleIn(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            )
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = FieldTextColor
-            )
-        }
-        AnimatedVisibility(
-            visible = animate,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            IconButton(
-                onClick = { onShopCartSelected() }
-            ) {
-                Icon(
-                    painter = rememberVectorPainter(Icons.Filled.ShoppingCart),
-                    contentDescription = "Shopping Cart"
-                )
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.SearchDishItem(
@@ -276,7 +205,7 @@ fun SharedTransitionScope.SearchDishItem(
                     }
                 ),
             painter = painterResource(id = R.drawable.logo_dish),
-            contentDescription = "Dish Item"
+            contentDescription = null
         )
         Text(
             text = dish.name,

@@ -387,7 +387,7 @@ fun SearchBar(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon"
+                        contentDescription = null
                     )
                 },
                 singleLine = true,
@@ -414,7 +414,7 @@ fun SearchBar(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_settings),
-                    contentDescription = "Settings",
+                    contentDescription = null,
                 )
             }
         }
@@ -423,10 +423,10 @@ fun SearchBar(
 
 @Composable
 fun DashboardToolbar(modifier: Modifier = Modifier) {
-    var animate by remember { mutableStateOf(false) }
+    var animationVisibility by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        animate = true
+        animationVisibility = true
     }
 
     Row(
@@ -435,7 +435,7 @@ fun DashboardToolbar(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AnimatedVisibility(
-            visible = animate,
+            visible = animationVisibility,
             enter = scaleIn(
                 animationSpec = tween(
                     durationMillis = 500,
@@ -446,12 +446,12 @@ fun DashboardToolbar(modifier: Modifier = Modifier) {
             IconButton(onClick = {}) {
                 Icon(
                     painter = painterResource(R.drawable.ic_menu),
-                    contentDescription = "Menu"
+                    contentDescription = null
                 )
             }
         }
         AnimatedVisibility(
-            visible = animate,
+            visible = animationVisibility,
             enter = scaleIn(
                 animationSpec = tween(
                     durationMillis = 500,

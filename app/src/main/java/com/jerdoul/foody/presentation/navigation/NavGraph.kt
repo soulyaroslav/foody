@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.jerdoul.foody.presentation.auth.AuthorizationScreen
 import com.jerdoul.foody.presentation.auth.AuthorizationViewModel
+import com.jerdoul.foody.presentation.cart.CartScreen
+import com.jerdoul.foody.presentation.cart.CartViewModel
 import com.jerdoul.foody.presentation.dashboard.DashboardScreen
 import com.jerdoul.foody.presentation.dashboard.DashboardViewModel
 import com.jerdoul.foody.presentation.details.DetailsScreen
@@ -78,6 +80,15 @@ fun NavGraph(
                     navigator = navigator,
                     state = state,
                     animatedVisibilityScope = this,
+                    onAction = viewModel::onAction
+                )
+            }
+            composable<Destination.CartScreen> {
+                val viewModel = hiltViewModel<CartViewModel>()
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                CartScreen(
+                    navigator = navigator,
+                    state = state,
                     onAction = viewModel::onAction
                 )
             }

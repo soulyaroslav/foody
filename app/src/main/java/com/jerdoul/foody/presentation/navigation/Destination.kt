@@ -17,4 +17,7 @@ sealed class Destination {
 
     @Serializable
     data class DetailsScreen(val dishId: Int) : Destination()
+
+    @Serializable
+    data object CartScreen : Destination()
 }

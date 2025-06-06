@@ -13,6 +13,7 @@ import com.jerdoul.foody.presentation.navigation.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,16 +45,11 @@ class DetailsViewModel @Inject constructor(
     private fun addToCart() = with(_state.value) {
         dish?.let { dish ->
             viewModelScope.launch {
-                cartCache.clear()
                 if (selectedCount > 1) {
                     val dishes = List(selectedCount) { dish }
                     cartCache.addBunch(dishes)
                 } else {
                     cartCache.add(dish)
-                }
-                val count = cartCache.obtain().size
-                _state.update {
-                    it.copy(cartCount = count)
                 }
             }
         }
@@ -74,6 +70,13 @@ class DetailsViewModel @Inject constructor(
     }
 
     private fun init() {
+        viewModelScope.launch {
+            cartCache.dishes.collectLatest {
+                _state.update { currentState ->
+                    currentState.copy(cartCount = it.size)
+                }
+            }
+        }
         viewModelScope.launch {
             savedStateHandle.get<Int>("dishId")?.let { dishId ->
                 val params = RetrieveDishByIdUseCase.Params.toParams(dishId)

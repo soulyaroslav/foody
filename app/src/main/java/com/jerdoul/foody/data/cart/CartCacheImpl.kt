@@ -2,6 +2,9 @@ package com.jerdoul.foody.data.cart
 
 import com.jerdoul.foody.domain.cart.CartCache
 import com.jerdoul.foody.domain.pojo.Dish
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
@@ -9,17 +12,23 @@ import javax.inject.Inject
 class CartCacheImpl @Inject constructor() : CartCache {
 
     private val cart = mutableListOf<Dish>()
+
+    private val _cartFlow = MutableStateFlow<List<Dish>>(emptyList())
+    override val dishes: StateFlow<List<Dish>> = _cartFlow.asStateFlow()
+
     private val mutex = Mutex()
 
     override suspend fun add(dish: Dish) {
         mutex.withLock {
             cart.add(dish)
+            _cartFlow.value = cart.toList()
         }
     }
 
     override suspend fun addBunch(dishes: List<Dish>) {
         mutex.withLock {
             cart.addAll(dishes)
+            _cartFlow.value = cart.toList()
         }
     }
 
@@ -32,6 +41,7 @@ class CartCacheImpl @Inject constructor() : CartCache {
     override suspend fun remove(dish: Dish) {
         mutex.withLock {
             cart.remove(dish)
+            _cartFlow.value = cart.toList()
         }
     }
 
@@ -39,8 +49,8 @@ class CartCacheImpl @Inject constructor() : CartCache {
         mutex.withLock {
             if (cart.isNotEmpty()) {
                 cart.clear()
+                _cartFlow.value = emptyList()
             }
         }
     }
-
 }
