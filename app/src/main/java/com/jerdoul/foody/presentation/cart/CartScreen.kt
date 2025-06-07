@@ -1,23 +1,37 @@
 package com.jerdoul.foody.presentation.cart
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -43,7 +58,10 @@ import com.jerdoul.foody.ui.composable.Counter
 import com.jerdoul.foody.ui.composable.NavToolbar
 import com.jerdoul.foody.ui.theme.FieldTextColor
 import com.jerdoul.foody.ui.theme.FieldTextHintColor
+import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
 import kotlinx.coroutines.launch
+import java.util.Locale
+import com.jerdoul.foody.ui.composable.BaseFilledButton as BaseFilledButton1
 
 @Composable
 fun CartScreen(
@@ -55,7 +73,7 @@ fun CartScreen(
     val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (toolbarRef, dishesRef) = createRefs()
+        val (toolbarRef, dishesRef, paymentRef) = createRefs()
         NavToolbar(
             modifier = Modifier
                 .constrainAs(toolbarRef) {
@@ -90,7 +108,7 @@ fun CartScreen(
                     top.linkTo(toolbarRef.bottom, 24.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
+                    bottom.linkTo(paymentRef.top)
                     width = Dimension.fillToConstraints
                     height = Dimension.fillToConstraints
                 },
@@ -98,23 +116,126 @@ fun CartScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(24.dp)
         ) {
-            items(state.dishStates) { dishState ->
+            itemsIndexed(state.dishes) { position, dish ->
                 CartItem(
                     modifier = Modifier.fillMaxWidth(),
-                    dish = dishState.dish,
+                    dish = dish,
                     onIncrement = {
                         onAction(CartAction.Increase(it))
                     },
                     onDecrement = {
                         onAction(CartAction.Decrease(it))
                     },
-                    onRemove = { dish, _ ->
-                        onAction(CartAction.Remove(dish))
+                    onRemove = {
+                        onAction(CartAction.Remove(it))
                     },
-                    selectedCount = dishState.selectedCount
+                    selectedCount = state.dishCounts[position]
                 )
             }
-
+        }
+        Card(
+            modifier = Modifier
+                .constrainAs(paymentRef) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
+                }
+                .verticalSlideInAnimation(
+                    initialOffsetY = screenHeightPx,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    delay = 800
+                ),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .navigationBarsPadding()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Items (${state.totalCount})",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = FieldTextColor
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "$",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f", state.itemsPrice),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = FieldTextColor
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Total Price",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = FieldTextColor
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "$",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f", state.totalPrice),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = FieldTextColor
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                BaseFilledButton1(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    onClick = {
+                        onAction(CartAction.Checkout)
+                    },
+                    isLoading = state.isLoading,
+                    loadingContent = {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    content = {
+                        Text(
+                            text = "Checkout",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+            }
         }
     }
 }
@@ -125,7 +246,7 @@ fun CartItem(
     dish: Dish,
     onIncrement: (Int) -> Unit,
     onDecrement: (Int) -> Unit,
-    onRemove: (Dish, Int) -> Unit,
+    onRemove: (Dish) -> Unit,
     selectedCount: Int
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -136,7 +257,7 @@ fun CartItem(
                 }
 
                 SwipeToDismissBoxValue.EndToStart -> {
-                    onRemove(dish, selectedCount)
+                    onRemove(dish)
                 }
 
                 SwipeToDismissBoxValue.Settled -> {
@@ -237,7 +358,7 @@ fun SwipeContent(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = dish.price,
+                    text = "${dish.price}",
                     style = MaterialTheme.typography.headlineLarge,
                     color = FieldTextColor
                 )

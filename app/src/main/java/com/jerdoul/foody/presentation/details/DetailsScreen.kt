@@ -179,7 +179,7 @@ fun SharedTransitionScope.DetailsScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = state.dish?.price ?: "0.00",
+                        text = "${state.dish?.price}",
                         style = MaterialTheme.typography.headlineLarge,
                         color = FieldTextColor
                     )

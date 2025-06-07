@@ -288,7 +288,7 @@ fun SharedTransitionScope.DishItem(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = dish.price,
+                text = "${dish.price}",
                 style = MaterialTheme.typography.headlineLarge,
                 color = FieldTextColor
             )

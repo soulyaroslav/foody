@@ -84,7 +84,7 @@ fun SharedTransitionScope.SearchScreen(
                 }
                 .statusBarsPadding(),
             title = stringResource(R.string.search_food),
-            onBack = { navigator.navigateUp()  },
+            onBack = { navigator.navigateUp() },
             customContent = {
                 IconWithCounter(
                     count = state.cartCount,
@@ -232,7 +232,7 @@ fun SharedTransitionScope.SearchDishItem(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = dish.price,
+                text = "${dish.price}",
                 style = MaterialTheme.typography.headlineLarge,
                 color = FieldTextColor
             )

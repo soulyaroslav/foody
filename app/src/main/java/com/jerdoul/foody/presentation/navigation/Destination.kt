@@ -20,4 +20,7 @@ sealed class Destination {
 
     @Serializable
     data object CartScreen : Destination()
+
+    @Serializable
+    data object PaymentScreen : Destination()
 }

@@ -2,6 +2,7 @@ package com.jerdoul.foody.presentation
 
 import com.jerdoul.foody.R
 import com.jerdoul.foody.domain.Result
+import com.jerdoul.foody.domain.error.type.CheckoutError
 import com.jerdoul.foody.domain.error.type.Error
 import com.jerdoul.foody.domain.error.type.NetworkError
 import com.jerdoul.foody.domain.error.type.ValidationError
@@ -12,14 +13,21 @@ fun Result.Error<*, Error>.asErrorUiText(): UiText {
 }
 
 fun Error.asUiText(): UiText {
-    return when(this) {
-        is NetworkError -> this.asUiText()
-        is ValidationError -> this.asUiText()
+    return when (this) {
+        is NetworkError,
+        is ValidationError,
+        CheckoutError.NO_ITEMS -> this.asUiText()
+    }
+}
+
+fun CheckoutError.asUiText(): UiText {
+    return when (this) {
+        CheckoutError.NO_ITEMS -> UiText.StringResource(id = R.string.you_cart_is_empty)
     }
 }
 
 fun NetworkError.asUiText(): UiText {
-    return when(this) {
+    return when (this) {
         NetworkError.Http.NoNetworkConnection -> UiText.StringResource(id = R.string.no_network_connection)
         is NetworkError.Custom -> UiText.DynamicString(message)
         NetworkError.Http.BadGateway -> TODO()
@@ -34,7 +42,7 @@ fun NetworkError.asUiText(): UiText {
 }
 
 fun ValidationError.asUiText(): UiText {
-    return when(this) {
+    return when (this) {
         ValidationError.Email.EMPTY_EMAIL -> UiText.DynamicString("empty email")
         ValidationError.Email.INVALID_EMAIL -> UiText.DynamicString("invalid email")
         ValidationError.Password.EMPTY_PASSWORD -> UiText.DynamicString("empty password")

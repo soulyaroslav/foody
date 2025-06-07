@@ -7,7 +7,7 @@ data class Dish(
     val description: String,
     val calories: Int,
     val type: DishType,
-    val price: String,
+    val price: Double,
     val cookTimeMinutes: String,
     val ingredients: List<IngredientType>,
     val rating: String = "2.6"

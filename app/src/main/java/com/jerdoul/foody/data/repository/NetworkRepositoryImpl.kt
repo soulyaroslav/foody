@@ -18,7 +18,7 @@ private val dishes = listOf(
         description = "A juicy beef burger layered with melted cheddar cheese, crisp lettuce, fresh tomato, pickles, and a toasted sesame bun. Served hot with optional condiments.",
         calories = 750,
         type = DishType.FAST_FOOD,
-        price = "5.99",
+        price = 5.99,
         cookTimeMinutes = "10–15 min",
         ingredients = listOf(
             IngredientType.MEAT,
@@ -35,7 +35,7 @@ private val dishes = listOf(
         description = "A naturally sweet and creamy yellow fruit, packed with potassium and ideal as a quick energy snack or a breakfast add-on. No cooking required.",
         calories = 105,
         type = DishType.FRESH_FRUITS,
-        price = "0.59",
+        price = 0.59,
         cookTimeMinutes = "0 min",
         ingredients = listOf(
             IngredientType.FRUIT
@@ -48,7 +48,7 @@ private val dishes = listOf(
         description = "Freshly sliced carrots, crunchy and rich in beta-carotene. A healthy snack option that pairs well with dips like hummus or ranch.",
         calories = 50,
         type = DishType.FRESH_VEGETABLES,
-        price = "1.49",
+        price = 1.49,
         cookTimeMinutes = "0–5 min",
         ingredients = listOf(
             IngredientType.VEGETABLE
@@ -61,7 +61,7 @@ private val dishes = listOf(
         description = "Tortillas filled with seasoned hot beef, spicy salsa, shredded lettuce, and cheese. A flavorful and fiery bite for spice lovers.",
         calories = 620,
         type = DishType.SPICY_FOOD,
-        price = "6.49",
+        price = 6.49,
         cookTimeMinutes = "15–20 min",
         ingredients = listOf(
             IngredientType.MEAT,
@@ -79,7 +79,7 @@ private val dishes = listOf(
         description = "A grilled wrap filled with assorted roasted vegetables, creamy hummus, and fresh greens, making it a wholesome vegetarian option.",
         calories = 410,
         type = DishType.VEGETARIAN_FOOD,
-        price = "5.29",
+        price = 5.29,
         cookTimeMinutes = "10–15 min",
         ingredients = listOf(
             IngredientType.VEGETABLE,
@@ -95,7 +95,7 @@ private val dishes = listOf(
         description = "A fresh blend of organic greens, cherry tomatoes, cucumbers, and olive oil dressing. A light, refreshing choice with clean ingredients.",
         calories = 200,
         type = DishType.ORGANIC_FOOD,
-        price = "4.99",
+        price = 4.99,
         cookTimeMinutes = "5–10 min",
         ingredients = listOf(
             IngredientType.VEGETABLE,
@@ -110,7 +110,7 @@ private val dishes = listOf(
         description = "Golden, crispy potato sticks fried to perfection and lightly salted. A classic fast food favorite served hot and crunchy.",
         calories = 450,
         type = DishType.FAST_FOOD,
-        price = "2.99",
+        price = 2.99,
         cookTimeMinutes = "8–12 min",
         ingredients = listOf(
             IngredientType.VEGETABLE,
@@ -125,7 +125,7 @@ private val dishes = listOf(
         description = "Fresh, juicy red berries bursting with natural sweetness and antioxidants. Perfect as a snack, dessert, or smoothie addition.",
         calories = 60,
         type = DishType.FRESH_FRUITS,
-        price = "3.49",
+        price = 3.49,
         cookTimeMinutes = "0 min",
         ingredients = listOf(
             IngredientType.FRUIT
@@ -138,7 +138,7 @@ private val dishes = listOf(
         description = "Cool and refreshing slices of cucumber, great for hydration and low-calorie snacking. Often served as a side or salad ingredient.",
         calories = 25,
         type = DishType.FRESH_VEGETABLES,
-        price = "1.19",
+        price = 1.19,
         cookTimeMinutes = "0–5 min",
         ingredients = listOf(
             IngredientType.VEGETABLE
@@ -151,7 +151,7 @@ private val dishes = listOf(
         description = "A bowl of steaming hot noodles in a rich and spicy broth, topped with boiled egg, scallions, and vegetables. Comfort food with a kick.",
         calories = 540,
         type = DishType.SPICY_FOOD,
-        price = "4.79",
+        price = 4.79,
         cookTimeMinutes = "7–10 min",
         ingredients = listOf(
             IngredientType.GRAIN,
