@@ -17,18 +17,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.jerdoul.foody.R
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navigator: Navigator) {
-    var visible by remember {
+    var animationVisibility by remember {
         mutableStateOf(false)
     }
 
     LaunchedEffect(Unit) {
-        visible = true
+        animationVisibility = true
         delay(1500L)
         navigator.navigate(Destination.AuthorizationScreen)
     }
@@ -40,7 +42,7 @@ fun SplashScreen(navigator: Navigator) {
         contentAlignment = Alignment.Center
     ) {
         AnimatedVisibility(
-            visible = visible,
+            visible = animationVisibility,
             enter = fadeIn(
                 initialAlpha = .1f,
                 animationSpec = tween(
@@ -50,7 +52,7 @@ fun SplashScreen(navigator: Navigator) {
             ),
         ) {
             Text(
-                text = "Foody",
+                text = stringResource(R.string.foody),
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.primary
             )

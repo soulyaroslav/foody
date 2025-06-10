@@ -30,12 +30,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -60,6 +62,12 @@ fun AuthorizationScreen(
     ) {
         val (tabBarRef, contentRef) = createRefs()
         val guideline = createGuidelineFromTop(.4f)
+        val tabs = remember {
+            listOf(
+                NavItem.LOGIN,
+                NavItem.SIGN_UP
+            )
+        }
         AuthTabBar(
             modifier = Modifier
                 .constrainAs(tabBarRef) {
@@ -67,15 +75,12 @@ fun AuthorizationScreen(
                     end.linkTo(parent.end)
                     bottom.linkTo(contentRef.top)
                 },
-            tabs = listOf(
-                NavItem.LOGIN,
-                NavItem.SIGN_UP
-            ),
+            tabs = tabs,
             onTabChanged = {
                 onAction(AuthorizationAction.ChangeNavItem(it))
             }
         )
-        Box(
+        AnimatedContent(
             modifier = Modifier
                 .constrainAs(contentRef) {
                     top.linkTo(guideline)
@@ -84,30 +89,27 @@ fun AuthorizationScreen(
                     bottom.linkTo(parent.bottom)
                     width = Dimension.fillToConstraints
                     height = Dimension.fillToConstraints
-                }
-        ) {
-            AnimatedContent(
-                targetState = state.currentNavItem,
-                transitionSpec = {
-                    slideInHorizontally { it } + fadeIn() togetherWith
-                            slideOutHorizontally { -it } + fadeOut()
                 },
-                label = "TabTransition"
-            ) { targetTab ->
-                when (targetTab) {
-                    NavItem.LOGIN -> {
-                        LoginContent(
-                            state = state.loginState,
-                            onAction = onAction
-                        )
-                    }
+            targetState = state.currentNavItem,
+            transitionSpec = {
+                slideInHorizontally { it } + fadeIn() togetherWith
+                        slideOutHorizontally { -it } + fadeOut()
+            },
+            label = "TabTransition"
+        ) { targetTab ->
+            when (targetTab) {
+                NavItem.LOGIN -> {
+                    LoginContent(
+                        state = state.loginState,
+                        onAction = onAction
+                    )
+                }
 
-                    NavItem.SIGN_UP -> {
-                        RegistrationContent(
-                            state = state.registrationState,
-                            onAction = onAction
-                        )
-                    }
+                NavItem.SIGN_UP -> {
+                    RegistrationContent(
+                        state = state.registrationState,
+                        onAction = onAction
+                    )
                 }
             }
         }
@@ -120,14 +122,14 @@ fun AuthTabBar(modifier: Modifier, tabs: List<NavItem>, onTabChanged: (NavItem) 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
+    val screenWidthDp = LocalWindowInfo.current.containerSize.width
 
     LaunchedEffect(selectedTabIndex) {
         onTabChanged(tabs[selectedTabIndex])
         val targetOffset = with(density) {
-            val tabWidth = configuration.screenWidthDp.dp / tabs.size
-            val offset = tabWidth - 25.dp - (tabWidth / 2)
-            (selectedTabIndex * tabWidth.toPx()) + offset.toPx()
+            val tabWidth = screenWidthDp / tabs.size
+            val offset = tabWidth - (25.dp).toPx() - (tabWidth / 2)
+            (selectedTabIndex * tabWidth) + offset
         }
         indicatorOffset.animateTo(
             targetValue = targetOffset,
@@ -149,41 +151,63 @@ fun AuthTabBar(modifier: Modifier, tabs: List<NavItem>, onTabChanged: (NavItem) 
             )
             .fadeInAnimation()
     ) {
-        Row {
-            tabs.forEach { tab ->
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickableSingle {
-                            selectedTabIndex = tabs.indexOf(tab)
-                        }
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = tab.label,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+        Tabs(
+            modifier = Modifier.fillMaxWidth(),
+            tabs = tabs,
+            onTabSelected = {
+                selectedTabIndex = it
             }
-        }
-        Box(
+        )
+        Indicator(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(2.dp)
-        ) {
-            Box(
+                .height(2.dp),
+            offsetProvider = {
+                indicatorOffset.value.toInt()
+            }
+        )
+    }
+}
+
+@Composable
+fun Tabs(modifier: Modifier, tabs: List<NavItem>, onTabSelected: (Int) -> Unit) {
+    Row(modifier = modifier) {
+        tabs.forEach { tab ->
+            Row(
                 modifier = Modifier
-                    .offset { IntOffset(indicatorOffset.value.toInt(), 0) }
-                    .width(width = 50.dp)
-                    .fillMaxHeight()
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = MaterialTheme.shapes.medium
-                    )
-            )
+                    .weight(1f)
+                    .clickableSingle {
+                        val selectedTabIndex = tabs.indexOf(tab)
+                        onTabSelected(selectedTabIndex)
+                    }
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = tab.label,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun Indicator(modifier: Modifier, offsetProvider: () -> Int) {
+    Box(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(x = offsetProvider(), y = 0)
+                }
+                .width(width = 50.dp)
+                .fillMaxHeight()
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = MaterialTheme.shapes.medium
+                )
+        )
     }
 }

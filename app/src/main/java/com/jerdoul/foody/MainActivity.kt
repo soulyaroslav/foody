@@ -66,7 +66,6 @@ class MainActivity : ComponentActivity() {
             FoodyTheme(window) {
                 val context = LocalContext.current
                 val navController = rememberNavController()
-                val keyboardController = LocalSoftwareKeyboardController.current
                 val networkState by rememberConnectivityState(networkManager)
                 val snackbarHosState = remember {
                     SnackbarHostState()
@@ -119,13 +118,7 @@ class MainActivity : ComponentActivity() {
                     NavGraph(
                         modifier = Modifier.padding(innerPadding),
                         navController = navController,
-                        navigator = navigator,
-//                        onKeyboardStateChanged = { state ->
-//                            when (state) {
-//                                KeyboardState.SHOW -> keyboardController?.show()
-//                                KeyboardState.HIDE -> keyboardController?.hide()
-//                            }
-//                        }
+                        navigator = navigator
                     )
                 }
             }

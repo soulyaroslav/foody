@@ -1,79 +1,36 @@
 package com.jerdoul.foody.presentation.dashboard
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleIn
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
-import com.jerdoul.foody.domain.pojo.Dish
-import com.jerdoul.foody.domain.pojo.DishType
-import com.jerdoul.foody.domain.pojo.identifier
+import com.jerdoul.foody.presentation.dashboard.composables.DishTypesContent
+import com.jerdoul.foody.presentation.dashboard.composables.DishesContent
+import com.jerdoul.foody.presentation.dashboard.composables.SearchBar
+import com.jerdoul.foody.presentation.dashboard.composables.Toolbar
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.ui.theme.FieldTextColor
-import com.jerdoul.foody.ui.theme.FieldTextHintColor
-import com.jerdoul.foody.ui.theme.OnError
-import com.jerdoul.foody.utils.extensions.clickableSingle
 import com.jerdoul.foody.utils.extensions.horizontalSlideInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.min
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -84,31 +41,23 @@ fun SharedTransitionScope.DashboardScreen(
     onAction: (DashboardAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var enableVerticalSlideAnimation by rememberSaveable { mutableStateOf(true) }
+    val windowInfo = LocalWindowInfo.current
+    val screenWidth = remember { windowInfo.containerSize.width.toFloat() }
 
-    ConstraintLayout(
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        val (toolbarRef, titleRef, searchRef, typesRef, foodsRef) = createRefs()
-        DashboardToolbar(
+        Toolbar(
             modifier = Modifier
-                .constrainAs(ref = toolbarRef) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .statusBarsPadding()
         )
         Text(
             modifier = Modifier
-                .constrainAs(titleRef) {
-                    top.linkTo(toolbarRef.bottom, 24.dp)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .verticalSlideInAnimation(
                     initialOffsetY = -300f,
                     animationSpec = tween(
@@ -116,18 +65,13 @@ fun SharedTransitionScope.DashboardScreen(
                         easing = FastOutSlowInEasing
                     )
                 ),
-            text = "Let's eat\nQuality food",
+            text = stringResource(R.string.dashboard_title),
             style = MaterialTheme.typography.displayLarge,
             color = FieldTextColor
         )
         SearchBar(
             modifier = Modifier
-                .constrainAs(ref = searchRef) {
-                    top.linkTo(titleRef.bottom, 24.dp)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .verticalSlideInAnimation(
                     initialOffsetY = -300f,
                     animationSpec = tween(
@@ -136,343 +80,37 @@ fun SharedTransitionScope.DashboardScreen(
                     )
                 ),
             query = state.searchQuery,
-            placeholder = "Search",
+            placeholder = stringResource(R.string.search),
             onQueryChange = {
                 onAction(DashboardAction.Search(query = it))
             }
         )
-        var selectedItemPosition by remember { mutableIntStateOf(-1) }
-        LazyRow(
-            modifier = Modifier.constrainAs(typesRef) {
-                top.linkTo(searchRef.bottom, 24.dp)
-                start.linkTo(parent.start, 24.dp)
-                end.linkTo(parent.end, 24.dp)
-                width = Dimension.fillToConstraints
-            },
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            itemsIndexed(state.dishTypes) { itemPosition, foodType ->
-                DishTypeItem(
-                    dishType = foodType,
-                    itemPosition = itemPosition,
-                    selectedItemPosition = selectedItemPosition,
-                    onItemSelected = { dishType, position ->
-                        selectedItemPosition = position
-                        onAction(DashboardAction.FilterDishes(dishType))
-                    }
-                )
+        DishTypesContent(
+            modifier = Modifier.fillMaxWidth(),
+            dishTypes = state.dishTypes,
+            onFilterTypes = { type ->
+                onAction(DashboardAction.FilterDishes(type))
             }
-        }
-        val listState = rememberLazyListState()
-        val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
-        LazyRow(
+        )
+        DishesContent(
             modifier = Modifier
-                .constrainAs(foodsRef) {
-                    top.linkTo(typesRef.bottom, 24.dp)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .horizontalSlideInAnimation(
-                    initialOffsetX = 1000f,
-                    enabled = enableVerticalSlideAnimation,
+                    initialOffsetX = screenWidth,
+                    enabled = true,
+                    playOnce = true,
                     animationSpec = tween(
                         durationMillis = 700,
                         delayMillis = 1000
-                    ),
-                    onFinished = {
-                        enableVerticalSlideAnimation = false
-                    }
+                    )
                 ),
-            state = listState,
-            flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(state.dishes) { dish ->
-                DishItem(
-                    dish = dish,
-                    listState = listState,
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    onDishSelected = {
-                        coroutineScope.launch {
-                            navigator.navigate(Destination.DetailsScreen(it.id))
-                        }
-                    }
-                )
+            dishes = state.dishes,
+            animatedVisibilityScope = animatedVisibilityScope,
+            onDishSelected = { id ->
+                coroutineScope.launch {
+                    navigator.navigate(Destination.DetailsScreen(id))
+                }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun SharedTransitionScope.DishItem(
-    dish: Dish,
-    listState: LazyListState,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    onDishSelected: (Dish) -> Unit
-) {
-    val currentItemOffset = remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItem = layoutInfo.visibleItemsInfo.find { it.index == dish.id - 1 }
-            if (visibleItem != null) {
-                val center = layoutInfo.viewportStartOffset + layoutInfo.viewportSize.width / 2
-                val itemCenter = visibleItem.offset + visibleItem.size / 2
-                val distance = abs(center - itemCenter).toFloat()
-                distance / layoutInfo.viewportSize.width
-            } else {
-                1f
-            }
-        }
-    }
-
-    val scale by animateFloatAsState(
-        targetValue = 1f - min(currentItemOffset.value, 1f) * 0.3f,
-        label = "ScaleAnim"
-    )
-
-    Column(
-        modifier = Modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(14.dp)
-            )
-            .clickableSingle {
-                onDishSelected(dish)
-            }
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            modifier = Modifier
-                .size(200.dp)
-                .clip(CircleShape)
-                .sharedElement(
-                    sharedContentState = rememberSharedContentState(key = "image/${dish.identifier()}"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ ->
-                        tween(durationMillis = 1000)
-                    }
-                ),
-            painter = painterResource(id = R.drawable.logo_dish),
-            contentDescription = "Dish Item"
         )
-        Text(
-            text = dish.name,
-            style = MaterialTheme.typography.headlineMedium,
-            color = FieldTextColor
-        )
-        Text(
-            text = dish.shortDescription,
-            style = MaterialTheme.typography.bodySmall,
-            color = FieldTextHintColor
-        )
-        Text(
-            text = stringResource(R.string.calories, dish.calories),
-            style = MaterialTheme.typography.bodySmall,
-            color = OnError
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "$",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${dish.price}",
-                style = MaterialTheme.typography.headlineLarge,
-                color = FieldTextColor
-            )
-        }
-        Spacer(modifier = Modifier.height(14.dp))
-    }
-}
-
-@Composable
-fun DishTypeItem(
-    dishType: DishType,
-    itemPosition: Int,
-    selectedItemPosition: Int,
-    onItemSelected: (DishType?, Int) -> Unit
-) {
-    var animate by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        animate = true
-    }
-
-    AnimatedVisibility(
-        visible = animate,
-        enter = scaleIn(
-            animationSpec = tween(
-                durationMillis = 500,
-                delayMillis = itemPosition * 100,
-                easing = FastOutSlowInEasing
-            )
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .then(
-                    if (selectedItemPosition == itemPosition) {
-                        Modifier.background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    } else {
-                        Modifier.border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(14.dp)
-                        )
-                    }
-                )
-                .padding(14.dp)
-                .clickableSingle {
-                    if (selectedItemPosition != itemPosition) {
-                        onItemSelected(dishType, itemPosition)
-                    } else {
-                        onItemSelected(null, -1)
-                    }
-
-                },
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                modifier = Modifier.size(40.dp),
-                painter = painterResource(id = R.drawable.logo_dish),
-                contentDescription = "Food Type"
-            )
-            Text(
-                text = dishType.type,
-                style = MaterialTheme.typography.headlineSmall,
-                color = FieldTextColor
-            )
-        }
-    }
-}
-
-@Composable
-fun SearchBar(
-    modifier: Modifier = Modifier,
-    query: String,
-    placeholder: String,
-    onQueryChange: (String) -> Unit
-) {
-    Column(modifier = modifier.animateContentSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = query,
-                onValueChange = onQueryChange,
-                placeholder = {
-                    Text(
-                        text = placeholder,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = FieldTextHintColor
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedTextColor = FieldTextColor,
-                    unfocusedTextColor = FieldTextColor
-                )
-            )
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MaterialTheme.shapes.small
-                    )
-                    .padding(14.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_settings),
-                    contentDescription = null,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DashboardToolbar(modifier: Modifier = Modifier) {
-    var animationVisibility by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        animationVisibility = true
-    }
-
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        AnimatedVisibility(
-            visible = animationVisibility,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            IconButton(onClick = {}) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_menu),
-                    contentDescription = null
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = animationVisibility,
-            enter = scaleIn(
-                animationSpec = tween(
-                    durationMillis = 500,
-                    delayMillis = 150
-                )
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = MaterialTheme.shapes.small
-                    )
-                    .padding(14.dp)
-            ) {
-                Text(
-                    text = "YH",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = FieldTextColor
-                )
-            }
-        }
     }
 }

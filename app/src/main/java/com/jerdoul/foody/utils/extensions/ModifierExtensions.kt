@@ -11,16 +11,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.IntOffset
 import com.jerdoul.foody.ui.utils.MultipleEventsCutter
 import com.jerdoul.foody.ui.utils.get
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun Modifier.clickableSingle(
@@ -49,6 +52,7 @@ fun Modifier.clickableSingle(
 fun Modifier.verticalSlideInAnimation(
     initialOffsetY: Float,
     enabled: Boolean = true,
+    playOnce: Boolean = false,
     animationSpec: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = 100f,
@@ -57,19 +61,23 @@ fun Modifier.verticalSlideInAnimation(
     onFinished: () -> Unit = {}
 ): Modifier = composed {
     val offsetY = remember { Animatable(initialOffsetY) }
+    var enableAnimation by rememberSaveable { mutableStateOf(enabled) }
 
     LaunchedEffect(Unit) {
-        if (enabled) {
+        if (enableAnimation) {
             delay(delay)
             offsetY.animateTo(
                 targetValue = 0f,
                 animationSpec = animationSpec
             )
         }
+        if (playOnce) {
+            enableAnimation = false
+        }
         onFinished()
     }
 
-    thenIf(enabled) {
+    thenIf(enableAnimation) {
         Modifier.offset { IntOffset(0, offsetY.value.toInt()) }
     }
 }
@@ -78,6 +86,7 @@ fun Modifier.verticalSlideInAnimation(
 fun Modifier.horizontalSlideInAnimation(
     initialOffsetX: Float,
     enabled: Boolean = true,
+    playOnce: Boolean = false,
     animationSpec: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = 100f,
@@ -86,19 +95,23 @@ fun Modifier.horizontalSlideInAnimation(
     onFinished: () -> Unit = {}
 ): Modifier = composed {
     val offsetX = remember { Animatable(initialOffsetX) }
+    var enableAnimation by rememberSaveable { mutableStateOf(enabled) }
 
     LaunchedEffect(Unit) {
-        if (enabled) {
+        if (enableAnimation) {
             delay(delay)
             offsetX.animateTo(
                 targetValue = 0f,
                 animationSpec = animationSpec
             )
         }
+        if (playOnce) {
+            enableAnimation = false
+        }
         onFinished()
     }
 
-    thenIf(enabled) {
+    thenIf(enableAnimation) {
         Modifier.offset { IntOffset(offsetX.value.toInt(), 0) }
     }
 }
@@ -108,20 +121,20 @@ fun Modifier.fadeInAnimation(
     alphaDuration: Int = 500,
     delay: Long = 0
 ): Modifier {
-    val alpha = remember { Animatable(0f) }
+    val alphaAnimation = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         delay(delay)
-        launch {
-            alpha.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = alphaDuration)
-            )
-        }
+        alphaAnimation.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = alphaDuration)
+        )
     }
 
     return this
-        .alpha(alpha.value)
+        .graphicsLayer {
+            alpha = alphaAnimation.value
+        }
 }
 
 fun Modifier.thenIf(condition: Boolean, modifier: Modifier.() -> Modifier): Modifier {

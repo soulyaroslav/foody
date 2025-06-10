@@ -8,7 +8,7 @@ data class CartState(
     val dishes: List<Dish> = emptyList(),
     val dishCounts: List<Int> = emptyList(),
     val error: UiText? = null,
-    val totalCount: Int = 0,
+    val itemCount: Int = 0,
     val itemsPrice: Double = 0.0,
     val totalPrice: Double = 0.0
 )

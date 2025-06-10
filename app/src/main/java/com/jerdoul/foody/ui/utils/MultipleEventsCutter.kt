@@ -1,5 +1,7 @@
 package com.jerdoul.foody.ui.utils
 
+import androidx.compose.runtime.Stable
+
 internal interface MultipleEventsCutter {
     fun processEvent(event: () -> Unit)
 
@@ -9,6 +11,7 @@ internal interface MultipleEventsCutter {
 internal fun MultipleEventsCutter.Companion.get(): MultipleEventsCutter =
     MultipleEventsCutterImpl()
 
+@Stable
 private class MultipleEventsCutterImpl : MultipleEventsCutter {
     private val now: Long
         get() = System.currentTimeMillis()
@@ -16,9 +19,10 @@ private class MultipleEventsCutterImpl : MultipleEventsCutter {
     private var lastEventTimeMs: Long = 0
 
     override fun processEvent(event: () -> Unit) {
-        if (now - lastEventTimeMs >= 500L) {
+        val currentTime = now
+        if (currentTime - lastEventTimeMs >= 500L) {
+            lastEventTimeMs = currentTime
             event.invoke()
         }
-        lastEventTimeMs = now
     }
 }

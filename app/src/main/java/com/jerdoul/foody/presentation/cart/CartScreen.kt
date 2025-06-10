@@ -1,67 +1,37 @@
 package com.jerdoul.foody.presentation.cart
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
-import com.jerdoul.foody.domain.pojo.Dish
+import com.jerdoul.foody.presentation.cart.composables.BottomCartContent
+import com.jerdoul.foody.presentation.cart.composables.CartItem
 import com.jerdoul.foody.presentation.navigation.Navigator
-import com.jerdoul.foody.ui.composable.Counter
 import com.jerdoul.foody.ui.composable.NavToolbar
 import com.jerdoul.foody.ui.theme.FieldTextColor
-import com.jerdoul.foody.ui.theme.FieldTextHintColor
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
 import kotlinx.coroutines.launch
-import java.util.Locale
-import com.jerdoul.foody.ui.composable.BaseFilledButton as BaseFilledButton1
 
 @Composable
 fun CartScreen(
@@ -70,10 +40,11 @@ fun CartScreen(
     onAction: (CartAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
+    val windowInfo = LocalWindowInfo.current
+    val screenHeightPx = remember { windowInfo.containerSize.height.toFloat() }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (toolbarRef, dishesRef, paymentRef) = createRefs()
+        val (toolbarRef, dishesRef, paymentRef, noItemsRef) = createRefs()
         NavToolbar(
             modifier = Modifier
                 .constrainAs(toolbarRef) {
@@ -84,7 +55,7 @@ fun CartScreen(
                 }
                 .statusBarsPadding(),
             onBack = { coroutineScope.launch { navigator.navigateUp() } },
-            title = "Cart Food",
+            title = stringResource(R.string.cart_food),
             customContent = {
                 Box(
                     modifier = Modifier
@@ -102,294 +73,80 @@ fun CartScreen(
                 }
             }
         )
-        LazyColumn(
-            modifier = Modifier
-                .constrainAs(dishesRef) {
-                    top.linkTo(toolbarRef.bottom, 24.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(paymentRef.top)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                },
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(24.dp)
-        ) {
-            itemsIndexed(state.dishes) { position, dish ->
-                CartItem(
-                    modifier = Modifier.fillMaxWidth(),
-                    dish = dish,
-                    onIncrement = {
-                        onAction(CartAction.Increase(it))
-                    },
-                    onDecrement = {
-                        onAction(CartAction.Decrease(it))
-                    },
-                    onRemove = {
-                        onAction(CartAction.Remove(it))
-                    },
-                    selectedCount = state.dishCounts[position]
-                )
-            }
-        }
-        Card(
-            modifier = Modifier
-                .constrainAs(paymentRef) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                }
-                .verticalSlideInAnimation(
-                    initialOffsetY = screenHeightPx,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessLow
-                    ),
-                    delay = 800
-                ),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-        ) {
-            Column(
+        if (state.dishes.isNotEmpty()) {
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .navigationBarsPadding()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Items (${state.totalCount})",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = FieldTextColor
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "$",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = String.format(Locale.getDefault(), "%.2f", state.itemsPrice),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = FieldTextColor
-                        )
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Total Price",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = FieldTextColor
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "$",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = String.format(Locale.getDefault(), "%.2f", state.totalPrice),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = FieldTextColor
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                BaseFilledButton1(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
-                    onClick = {
-                        onAction(CartAction.Checkout)
-                    },
-                    isLoading = state.isLoading,
-                    loadingContent = {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    content = {
-                        Text(
-                            text = "Checkout",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CartItem(
-    modifier: Modifier,
-    dish: Dish,
-    onIncrement: (Int) -> Unit,
-    onDecrement: (Int) -> Unit,
-    onRemove: (Dish) -> Unit,
-    selectedCount: Int
-) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            when (it) {
-                SwipeToDismissBoxValue.StartToEnd -> {
-                    return@rememberSwipeToDismissBoxState false
-                }
-
-                SwipeToDismissBoxValue.EndToStart -> {
-                    onRemove(dish)
-                }
-
-                SwipeToDismissBoxValue.Settled -> {
-                    return@rememberSwipeToDismissBoxState false
-                }
-            }
-            return@rememberSwipeToDismissBoxState true
-        },
-        positionalThreshold = { distance ->
-            distance * .15f
-        }
-    )
-    SwipeToDismissBox(
-        modifier = modifier,
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = { SwipeToDeleteBackground() },
-        content = {
-            SwipeContent(
-                dish = dish,
-                onIncrement = {
-                    onIncrement(dish.id)
-                },
-                onDecrement = {
-                    onDecrement(dish.id)
-                },
-                selectedCount = selectedCount
-            )
-        }
-    )
-}
-
-@Composable
-fun SwipeContent(
-    dish: Dish,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    selectedCount: Int
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        ConstraintLayout(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
-            val (imageRef, titleRef, descriptionRef, priceRef, counterRef) = createRefs()
-            Image(
-                modifier = Modifier
-                    .constrainAs(imageRef) {
-                        top.linkTo(parent.top, 14.dp)
+                    .constrainAs(dishesRef) {
+                        top.linkTo(toolbarRef.bottom, 24.dp)
                         start.linkTo(parent.start)
-                        bottom.linkTo(parent.bottom, 14.dp)
-                    }
-                    .size(150.dp)
-                    .clip(CircleShape),
-                painter = painterResource(id = R.drawable.logo_dish),
-                contentDescription = null
-            )
-            Text(
-                modifier = Modifier.constrainAs(titleRef) {
-                    top.linkTo(parent.top)
-                    start.linkTo(imageRef.end, 24.dp)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                },
-                text = dish.name,
-                style = MaterialTheme.typography.headlineSmall,
-                color = FieldTextColor
-            )
-            Text(
-                modifier = Modifier.constrainAs(descriptionRef) {
-                    top.linkTo(titleRef.bottom, 8.dp)
-                    start.linkTo(titleRef.start)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                },
-                text = dish.shortDescription,
-                style = MaterialTheme.typography.bodySmall,
-                color = FieldTextHintColor
-            )
-            Row(
-                modifier = Modifier
-                    .constrainAs(priceRef) {
-                        top.linkTo(descriptionRef.bottom, 8.dp)
-                        start.linkTo(descriptionRef.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(paymentRef.top)
+                        width = Dimension.fillToConstraints
+                        height = Dimension.fillToConstraints
                     },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(24.dp)
             ) {
-                Text(
-                    text = "$",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "${dish.price}",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = FieldTextColor
-                )
+                itemsIndexed(
+                    items = state.dishes,
+                    key = { _, dish -> dish.id }
+                ) { position, dish ->
+                    CartItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
+                        dish = dish,
+                        onIncrement = {
+                            onAction(CartAction.Increase(it))
+                        },
+                        onDecrement = {
+                            onAction(CartAction.Decrease(it))
+                        },
+                        onRemove = {
+                            onAction(CartAction.Remove(it))
+                        },
+                        selectedCount = state.dishCounts[position]
+                    )
+                }
             }
-            Counter(
+
+            BottomCartContent(
                 modifier = Modifier
-                    .constrainAs(counterRef) {
+                    .constrainAs(paymentRef) {
+                        start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
-                    },
-                onDecrement = onDecrement,
-                onIncrement = onIncrement,
-                selectedCount = selectedCount
+                        width = Dimension.fillToConstraints
+                    }
+                    .verticalSlideInAnimation(
+                        initialOffsetY = screenHeightPx,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        delay = 800
+                    ),
+                isLoading = state.isLoading,
+                itemCount = state.itemCount,
+                itemsPrice = state.itemsPrice,
+                totalPrice = state.totalPrice,
+                onCheckout = {
+                    onAction(CartAction.Checkout)
+                }
             )
-        }
-    }
-}
-
-@Composable
-fun SwipeToDeleteBackground() {
-    Row(
-        modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = {}
-        ) {
-            Icon(
-                painter = rememberVectorPainter(Icons.Default.Delete),
-                contentDescription = null
+        } else {
+            Text(
+                modifier = Modifier
+                    .constrainAs(noItemsRef) {
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        top.linkTo(toolbarRef.bottom)
+                    },
+                text = stringResource(R.string.cart_is_empty),
+                style = MaterialTheme.typography.headlineLarge,
+                color = FieldTextColor
             )
         }
     }

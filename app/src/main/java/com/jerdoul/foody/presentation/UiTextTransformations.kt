@@ -14,9 +14,9 @@ fun Result.Error<*, Error>.asErrorUiText(): UiText {
 
 fun Error.asUiText(): UiText {
     return when (this) {
-        is NetworkError,
-        is ValidationError,
-        CheckoutError.NO_ITEMS -> this.asUiText()
+        is NetworkError -> this.asUiText()
+        is ValidationError -> this.asUiText()
+        is CheckoutError -> this.asUiText()
     }
 }
 

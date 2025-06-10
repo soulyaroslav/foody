@@ -6,4 +6,16 @@
     <string name="details">Details</string>
     <string name="ingredients">Ingredients</string>
     <string name="you_cart_is_empty">You cart is empty</string>
+    <string name="foody">Foody</string>
+    <string name="login">Login</string>
+    <string name="dashboard_title">Let\'s eat\nQuality food</string>
+    <string name="search">Search</string>
+    <string name="search_food_placeholder">Search food</string>
+    <string name="found_results">Found\n%1$s results</string>
+    <string name="default_min">0 min</string>
+    <string name="cart_food">Cart Food</string>
+    <string name="checkout">Checkout</string>
+    <string name="total_price">Total Price</string>
+    <string name="items_count">Items (%1$s)</string>
+    <string name="cart_is_empty">Cart is empty</string>
 </resources>

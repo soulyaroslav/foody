@@ -7,54 +7,35 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.jerdoul.foody.R
-import com.jerdoul.foody.domain.pojo.Dish
-import com.jerdoul.foody.domain.pojo.identifier
-import com.jerdoul.foody.presentation.dashboard.SearchBar
+import com.jerdoul.foody.presentation.dashboard.composables.SearchBar
 import com.jerdoul.foody.presentation.navigation.Destination
 import com.jerdoul.foody.presentation.navigation.Navigator
+import com.jerdoul.foody.presentation.search.composables.SearchDishItem
 import com.jerdoul.foody.ui.composable.IconWithCounter
 import com.jerdoul.foody.ui.composable.NavToolbar
 import com.jerdoul.foody.ui.theme.FieldTextColor
-import com.jerdoul.foody.ui.theme.FieldTextHintColor
-import com.jerdoul.foody.ui.theme.OnError
-import com.jerdoul.foody.utils.extensions.clickableSingle
 import com.jerdoul.foody.utils.extensions.horizontalSlideInAnimation
 import com.jerdoul.foody.utils.extensions.verticalSlideInAnimation
 import kotlinx.coroutines.launch
@@ -68,20 +49,17 @@ fun SharedTransitionScope.SearchScreen(
     onAction: (SearchAction) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val screenHeightPx = LocalWindowInfo.current.containerSize.height.toFloat()
+    val windowInfo = LocalWindowInfo.current
+    val screenHeightPx = remember { windowInfo.containerSize.height.toFloat() }
 
-    var enableVerticalSlideAnimation by rememberSaveable { mutableStateOf(true) }
-
-    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (searchRef, toolbarRef, gridRef) = createRefs()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+    ) {
         NavToolbar(
             modifier = Modifier
-                .constrainAs(toolbarRef) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start, 14.dp)
-                    end.linkTo(parent.end, 14.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .statusBarsPadding(),
             title = stringResource(R.string.search_food),
             onBack = { navigator.navigateUp() },
@@ -99,12 +77,7 @@ fun SharedTransitionScope.SearchScreen(
         )
         SearchBar(
             modifier = Modifier
-                .constrainAs(searchRef) {
-                    top.linkTo(toolbarRef.bottom, 24.dp)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    width = Dimension.fillToConstraints
-                }
+                .fillMaxWidth()
                 .verticalSlideInAnimation(
                     initialOffsetY = -300f,
                     animationSpec = tween(
@@ -113,7 +86,7 @@ fun SharedTransitionScope.SearchScreen(
                     )
                 ),
             query = state.searchQuery,
-            placeholder = "Search food",
+            placeholder = stringResource(R.string.search_food_placeholder),
             onQueryChange = { query ->
                 onAction(SearchAction.Search(query))
             }
@@ -121,25 +94,16 @@ fun SharedTransitionScope.SearchScreen(
 
         LazyVerticalStaggeredGrid(
             modifier = Modifier
-                .constrainAs(gridRef) {
-                    top.linkTo(searchRef.bottom, 24.dp)
-                    start.linkTo(parent.start, 24.dp)
-                    end.linkTo(parent.end, 24.dp)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                }
+                .fillMaxSize()
                 .verticalSlideInAnimation(
                     initialOffsetY = screenHeightPx,
-                    enabled = enableVerticalSlideAnimation,
+                    enabled = true,
+                    playOnce = true,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
                         stiffness = Spring.StiffnessLow
                     ),
                     delay = 200,
-                    onFinished = {
-                        enableVerticalSlideAnimation = false
-                    }
                 ),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalItemSpacing = 14.dp,
@@ -155,7 +119,7 @@ fun SharedTransitionScope.SearchScreen(
                         ),
                         delay = 600
                     ),
-                    text = "Found\n${state.dishesCount} results",
+                    text = stringResource(R.string.found_results, state.dishesCount),
                     style = MaterialTheme.typography.displayLarge,
                     color = FieldTextColor
                 )
@@ -175,68 +139,3 @@ fun SharedTransitionScope.SearchScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun SharedTransitionScope.SearchDishItem(
-    dish: Dish,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    onDishSelected: (Dish) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(14.dp)
-            )
-            .clickableSingle { onDishSelected(dish) }
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            modifier = Modifier
-                .size(200.dp)
-                .clip(CircleShape)
-                .sharedElement(
-                    sharedContentState = rememberSharedContentState(key = "image/${dish.identifier()}"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ ->
-                        tween(durationMillis = 1000)
-                    }
-                ),
-            painter = painterResource(id = R.drawable.logo_dish),
-            contentDescription = null
-        )
-        Text(
-            text = dish.name,
-            style = MaterialTheme.typography.headlineMedium,
-            color = FieldTextColor
-        )
-        Text(
-            text = dish.shortDescription,
-            style = MaterialTheme.typography.bodySmall,
-            color = FieldTextHintColor
-        )
-        Text(
-            text = stringResource(R.string.calories, dish.calories),
-            style = MaterialTheme.typography.bodySmall,
-            color = OnError
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "$",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "${dish.price}",
-                style = MaterialTheme.typography.headlineLarge,
-                color = FieldTextColor
-            )
-        }
-        Spacer(modifier = Modifier.height(14.dp))
-    }
-}

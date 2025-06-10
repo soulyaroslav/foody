@@ -23,10 +23,6 @@ import com.jerdoul.foody.presentation.search.SearchScreen
 import com.jerdoul.foody.presentation.search.SearchViewModel
 import com.jerdoul.foody.presentation.splash.SplashScreen
 
-enum class KeyboardState {
-    SHOW, HIDE
-}
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun NavGraph(

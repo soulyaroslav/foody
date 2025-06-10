@@ -32,10 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.jerdoul.foody.R
 import com.jerdoul.foody.presentation.auth.AuthorizationAction
 import com.jerdoul.foody.ui.composable.BaseFilledButton
 import com.jerdoul.foody.ui.composable.CustomPasswordUnderlinedTextField
@@ -140,7 +142,7 @@ fun LoginContent(
             },
             content = {
                 Text(
-                    text = "Login",
+                    text = stringResource(R.string.login),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold

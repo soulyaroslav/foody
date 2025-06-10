@@ -11,6 +11,7 @@ import com.jerdoul.foody.presentation.navigation.Navigator
 import com.jerdoul.foody.ui.utils.SnackbarController
 import com.jerdoul.foody.ui.utils.SnackbarEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,21 +36,31 @@ class CartViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             cartCache.dishes.collectLatest { cachedDishes ->
-                val dishCounts = cachedDishes.groupBy { it.id }
-                    .mapValues { it.value.size }
-                    .map { it.value }
-                    .toList()
-                val dishes = cachedDishes.distinctBy { it.id }
-                val itemsPrice = cachedDishes.sumOf { it.price }
-                val totalPrice = itemsPrice + (itemsPrice * TAX_PERCENTAGE)
-                _state.update { currentState ->
-                    currentState.copy(
-                        dishes = dishes,
-                        dishCounts = dishCounts,
-                        itemsPrice = itemsPrice,
-                        totalPrice = totalPrice,
-                        totalCount = dishes.size
-                    )
+                if (cachedDishes.isEmpty()) {
+                    _state.update { currentState ->
+                        currentState.copy(
+                            dishes = emptyList(),
+                            dishCounts = emptyList()
+                        )
+                    }
+                } else {
+                    val dishCounts = cachedDishes.groupBy { it.id }
+                        .mapValues { map -> map.value.size }
+                        .map { map -> map.value }
+                        .toList()
+                    val dishes = cachedDishes.distinctBy { it.id }
+                    val itemsPrice = cachedDishes.sumOf { it.price }
+                    val totalPrice = itemsPrice + (itemsPrice * TAX_PERCENTAGE)
+                    val itemCount = dishCounts.sum()
+                    _state.update { currentState ->
+                        currentState.copy(
+                            dishes = dishes,
+                            dishCounts = dishCounts,
+                            itemsPrice = itemsPrice,
+                            totalPrice = totalPrice,
+                            itemCount = itemCount
+                        )
+                    }
                 }
             }
         }
@@ -69,8 +80,11 @@ class CartViewModel @Inject constructor(
             _state.update { currentState ->
                 currentState.copy(isLoading = true)
             }
+            delay(1000L)
             if (dishes.isEmpty()) {
-                SnackbarController.showEvent(SnackbarEvent.UiTextMessage(CheckoutError.NO_ITEMS.asUiText()))
+                SnackbarEvent.UiTextMessage(CheckoutError.NO_ITEMS.asUiText()).also {
+                    SnackbarController.showEvent(it)
+                }
             } else {
                 navigator.navigate(Destination.PaymentScreen)
             }

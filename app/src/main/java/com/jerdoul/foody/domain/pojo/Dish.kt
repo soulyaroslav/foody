@@ -35,4 +35,4 @@ enum class IngredientType {
     OTHER
 }
 
-fun Dish?.identifier() = this?.let { "$id-$name" } ?: ""
+fun Dish?.identifier() = this?.let { "image/$id-$name" } ?: ""
