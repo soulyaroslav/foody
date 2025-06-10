@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -36,9 +37,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.jerdoul.foody.R
 import com.jerdoul.foody.presentation.auth.AuthorizationAction
+import com.jerdoul.foody.ui.composable.AnimatedFilledButton
 import com.jerdoul.foody.ui.composable.BaseFilledButton
 import com.jerdoul.foody.ui.composable.CustomPasswordUnderlinedTextField
 import com.jerdoul.foody.ui.composable.CustomUnderlinedTextField
@@ -116,7 +119,7 @@ fun LoginContent(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        BaseFilledButton(
+        AnimatedFilledButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalSlideInAnimation(
@@ -140,12 +143,13 @@ fun LoginContent(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
-            content = {
+            content = { _, r ->
                 Text(
                     text = stringResource(R.string.login),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = r
                 )
             }
         )
