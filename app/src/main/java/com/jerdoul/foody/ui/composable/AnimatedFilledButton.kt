@@ -1,8 +1,10 @@
 package com.jerdoul.foody.ui.composable
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -24,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,7 @@ fun AnimatedFilledButton(
     val interactionSource = remember { MutableInteractionSource() }
     val archHeight = remember { Animatable(0.dp, Dp.VectorConverter) }
     val horizontalPadding = remember { Animatable(0.dp, Dp.VectorConverter) }
-    val fontSize = remember { Animatable(8.dp, Dp.VectorConverter) }
+    val fontSize = remember { Animatable(16.sp, TextUnit.VectorConverter) }
 
     var isAnimationReady by remember { mutableStateOf(false) }
 
@@ -64,7 +65,7 @@ fun AnimatedFilledButton(
             }
             launch {
                 fontSize.animateTo(
-                    targetValue = 14.dp,
+                    targetValue = 22.sp,
                     animationSpec = tween(durationMillis = 300, easing = FastOutLinearInEasing)
                 )
             }
@@ -86,7 +87,7 @@ fun AnimatedFilledButton(
             }
             launch {
                 fontSize.animateTo(
-                    targetValue = 8.dp,
+                    targetValue = 16.sp,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessMedium
@@ -142,15 +143,16 @@ fun AnimatedFilledButton(
         if (isLoading) {
             loadingContent(this)
         } else {
-            content(this, fontSize.value.toSp())
+            content(this, fontSize.value)
         }
     }
 }
 
-@Composable
-fun Dp.toSp(): TextUnit {
-    val density = LocalDensity.current
-    return with(density) {
-        this@toSp.toPx() / fontScale
-    }.sp
-}
+val TextUnit.Companion.VectorConverter: TwoWayConverter<TextUnit, AnimationVector1D>
+    get() = SpToVector
+
+private val SpToVector: TwoWayConverter<TextUnit, AnimationVector1D> =
+    TwoWayConverter(
+        convertToVector = { AnimationVector1D(it.value) },
+        convertFromVector = { it.value.sp }
+    )
