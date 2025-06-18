@@ -18,4 +18,5 @@
     <string name="total_price">Total Price</string>
     <string name="items_count">Items (%1$s)</string>
     <string name="cart_is_empty">Cart is empty</string>
+    <string name="register">Register</string>
 </resources>

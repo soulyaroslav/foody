@@ -44,9 +44,9 @@ fun AnimatedFilledButton(
     targetPadding: Dp = 40.dp,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    loadingContent: @Composable (RowScope) -> Unit = {},
+    loadingContent: @Composable RowScope.() -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    content: @Composable (RowScope, TextUnit) -> Unit,
+    content: @Composable RowScope.(TextUnit) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val archHeight = remember { Animatable(0.dp, Dp.VectorConverter) }

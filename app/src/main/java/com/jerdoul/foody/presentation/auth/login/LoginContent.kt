@@ -143,13 +143,13 @@ fun LoginContent(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
-            content = { _, r ->
+            content = { fontSize ->
                 Text(
                     text = stringResource(R.string.login),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = r
+                    fontSize = fontSize
                 )
             }
         )

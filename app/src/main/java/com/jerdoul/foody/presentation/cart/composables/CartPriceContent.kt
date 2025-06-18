@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jerdoul.foody.R
-import com.jerdoul.foody.ui.composable.BaseFilledButton
+import com.jerdoul.foody.ui.composable.AnimatedFilledButton
 
 @Composable
 fun BottomCartContent(
@@ -52,7 +52,7 @@ fun BottomCartContent(
                 price = totalPrice
             )
             Spacer(modifier = Modifier.height(24.dp))
-            BaseFilledButton(
+            AnimatedFilledButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding(),
@@ -66,12 +66,13 @@ fun BottomCartContent(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
-                content = {
+                content = { fontSize ->
                     Text(
                         text = stringResource(R.string.checkout),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = fontSize
                     )
                 }
             )

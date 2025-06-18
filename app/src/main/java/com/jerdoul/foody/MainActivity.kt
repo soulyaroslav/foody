@@ -1,6 +1,7 @@
 package com.jerdoul.foody
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -43,9 +44,12 @@ import com.jerdoul.foody.ui.utils.rememberWindowSizeDetails
 import com.jerdoul.foody.utils.extensions.updateLightStatusBarAppearance
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -61,6 +65,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         window.updateLightStatusBarAppearance(true)
+
+        runBlocking {
+            launch {
+                repeat(5) {
+                    Log.d("TTTT","Coroutine 1 - $it on ${Thread.currentThread().name}")
+                    yield()
+                }
+            }
+
+            launch {
+                repeat(5) {
+                    Log.d("TTTT","Coroutine 2 - $it on ${Thread.currentThread().name}")
+                    yield()
+                }
+            }
+        }
+
         setContent {
             val window = rememberWindowSizeDetails()
             FoodyTheme(window) {
